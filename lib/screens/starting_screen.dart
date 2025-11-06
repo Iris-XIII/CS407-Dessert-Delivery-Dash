@@ -28,7 +28,7 @@ class StartPage extends StatelessWidget {
                     context,
                     'Play',
                         () {
-                      // TODO: Navigate to Customer Reception Page
+                      Navigator.pushNamed(context, '/customer-reception');
                       print('Play button pressed');
                     },
                     fontSize: 60, // Larger font size for Play button
@@ -71,7 +71,7 @@ class StartPage extends StatelessWidget {
                     context,
                     'Setting',
                         () {
-                      // TODO: Navigate to Settings Page
+                          Navigator.pushNamed(context, '/settings');
                       print('Setting button pressed');
                     },
                   ),

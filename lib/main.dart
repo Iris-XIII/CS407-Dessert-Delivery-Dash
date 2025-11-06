@@ -28,9 +28,9 @@ class DessertDeliveryDash extends StatelessWidget {
         // '/profile': (context) => ProfileScreen(),
         '/ending': (context) => EndingScreen(),
         '/kitchen': (context) => KitchenScreen(),
-        // '/customer-reception': (context) => CustomerReceptionScreen(),
+        '/customer-reception': (context) => CustomerReceptionScreen(),
         // '/recipe': (context) => RecipeScreen(),
-        // '/settings': (context) => SettingsScreen(),
+        '/settings': (context) => SettingsScreen(),
       },
     );
   }
