@@ -23,7 +23,7 @@ class StartPage extends StatelessWidget {
                 // "Play" button - Upper left (reception desk)
                 Positioned(
                   top: 120,
-                  left: 115,
+                  left: 90,
                   child: _buildButton(
                     context,
                     'Play',
@@ -43,7 +43,7 @@ class StartPage extends StatelessWidget {
                     context,
                     'Kitchen',
                         () {
-                      // TODO: Navigate to Kitchen Page
+                          Navigator.pushNamed(context, '/kitchen');
                       print('Kitchen button pressed');
                     },
                   ),
