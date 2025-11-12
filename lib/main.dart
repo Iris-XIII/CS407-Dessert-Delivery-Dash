@@ -25,11 +25,11 @@ class DessertDeliveryDash extends StatelessWidget {
         '/': (context) => HomeScreen(),
         '/starting': (context) => StartPage(),
         // TODO change these after implement each screen
-        // '/profile': (context) => ProfileScreen(),
+        '/profile': (context) => ProfileScreen(),
         '/ending': (context) => EndingScreen(),
         '/kitchen': (context) => KitchenScreen(),
         '/customer-reception': (context) => CustomerReceptionScreen(),
-        // '/recipe': (context) => RecipeScreen(),
+        '/recipe': (context) => RecipeScreen(),
         '/settings': (context) => SettingsScreen(),
       },
     );

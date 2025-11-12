@@ -57,7 +57,7 @@ class StartPage extends StatelessWidget {
                     context,
                     'Recipes',
                         () {
-                      // TODO: Navigate to Recipe Page
+                          Navigator.pushNamed(context, '/recipe');
                       print('Recipes button pressed');
                     },
                   ),
