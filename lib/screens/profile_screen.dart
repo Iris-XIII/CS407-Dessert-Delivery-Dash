@@ -1,246 +1,159 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String playerName;
-  final int dayNumber;
-  final int money;
-  final int level;
-  final String profileImage;
-
-  const ProfileScreen({
-    Key? key,
-    this.playerName = 'Player',
-    this.dayNumber = 1,
-    this.money = 0,
-    this.level = 1,
-    this.profileImage = 'assets/images/profile_avatar.png',
-  }) : super(key: key);
+  const ProfileScreen({Key? key}) : super(key: key);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final FocusNode _emailFocusNode = FocusNode();
+
+  bool isLogin = true;
+  bool isLoading = false;
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _emailFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitAuthForm() async {
+    setState(() => isLoading = true);
+    try {
+      if (isLogin) {
+        await _auth.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+      } else {
+        await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? "Authentication failed")),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Widget _buildAuthForm() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_emailFocusNode.hasFocus) _emailFocusNode.requestFocus();
+    });
+
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              isLogin ? 'Log In' : 'Sign Up',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: TextField(
+                controller: _emailController,
+                focusNode: _emailFocusNode,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            isLoading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+              onPressed: _submitAuthForm,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFB6C1),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 40, vertical: 12),
+              ),
+              child: Text(
+                isLogin ? 'Log In' : 'Sign Up',
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ),
+            TextButton(
+              onPressed: () => setState(() => isLogin = !isLogin),
+              child: Text(
+                isLogin
+                    ? "Don't have an account? Sign up"
+                    : "Already have an account? Log in",
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileInfo(User user) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Background image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/StartPage.jpeg', // You can use your own image
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-            ),
-          ),
-
-          // Foreground UI
-          SafeArea(
-            child: Column(
-              children: [
-                // Top Bar
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Left section: Player info
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.playerName,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Caveat',
-                              color: Color(0xFF8B6F8F),
-                            ),
-                          ),
-                          Text(
-                            'Day ${widget.dayNumber}',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontFamily: 'Caveat',
-                              color: Color(0xFF8B6F8F),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Middle: Level + Money
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Level: ${widget.level}',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontFamily: 'Caveat',
-                              color: Color(0xFF8B6F8F),
-                            ),
-                          ),
-                          Text(
-                            'Money: \$${widget.money.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontFamily: 'Caveat',
-                              color: Color(0xFF87D68D),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Right section: Navigation buttons
-                      Row(
-                        children: [
-                          _buildIconButton(
-                            icon: Icons.home,
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/starting');
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          _buildIconButton(
-                            icon: Icons.restaurant,
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/kitchen');
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          _buildIconButton(
-                            icon: Icons.receipt_long,
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/recipe');
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          _buildIconButton(
-                            icon: Icons.people,
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/customer-reception');
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Profile content
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      margin: const EdgeInsets.all(20),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const CircleAvatar(
-                            radius: 60,
-                            backgroundImage: AssetImage('assets/images/profile_avatar.png'),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            widget.playerName,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Caveat',
-                              color: Color(0xFF8B6F8F),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Day ${widget.dayNumber}',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontFamily: 'Caveat',
-                              color: Color(0xFF87D68D),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFB6C1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                            ),
-                            onPressed: () {
-                              // TODO: Add edit profile functionality
-                            },
-                            child: const Text(
-                              'Edit Profile',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontFamily: 'Caveat',
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          Text("Logged in as: ${user.email}",
+              style:
+              const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () async {
+              await _auth.signOut();
+              setState(() {});
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Log Out", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  // Reusable icon button (same style as KitchenScreen)
-  Widget _buildIconButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFB6C1),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+  @override
+  Widget build(BuildContext context) {
+    final user = _auth.currentUser;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+        backgroundColor: const Color(0xFFFFB6C1),
       ),
-      child: IconButton(
-        icon: Icon(icon),
-        color: Colors.white,
-        iconSize: 24,
-        onPressed: onPressed,
-        padding: const EdgeInsets.all(8),
-        constraints: const BoxConstraints(),
-      ),
+      body: user == null ? _buildAuthForm() : _buildProfileInfo(user),
     );
   }
 }
