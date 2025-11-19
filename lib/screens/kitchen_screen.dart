@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/recipe.dart';
+import 'miniGames/cake.dart'; // Assuming this imports CakeGameScreen
 import 'dart:async';
 
 class KitchenScreen extends StatefulWidget {
@@ -53,6 +55,31 @@ class _KitchenScreenState extends State<KitchenScreen> {
     super.dispose();
   }
 
+  // Helper widget for the clickable cake image/button (now purely an icon with tap functionality)
+  Widget _buildCakeButton({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        // Retaining dimensions for tap target size, but removing visual decoration
+        width: 65,
+        height: 65,
+        // Removed decoration (color, borderRadius, boxShadow) to make it look like just a picture/icon
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Placeholder for the actual cake icon/image
+            Icon(
+              Icons.cake,
+              size: 30,
+              color: Color(0xFFFF69B4), // Hot pink color
+            ),
+            // Removed the "Make Cake" text as requested for a small icon
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,10 +101,10 @@ class _KitchenScreenState extends State<KitchenScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: Colors.white.withOpacity(0.85),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: Colors.black.withOpacity(0.1),
                         blurRadius: 5,
                         offset: Offset(0, 2),
                       ),
@@ -170,10 +197,38 @@ class _KitchenScreenState extends State<KitchenScreen> {
                   ),
                 ),
 
-                // Kitchen workspace area (placeholder for now)
+                // Kitchen workspace area (Cake Icon)
                 Expanded(
-                  child: Container(
-                    // Food items and cooking area will go here
+                  child: Center(
+                    // New clickable cake image
+                    child: _buildCakeButton(
+                      onTap: () async {
+                        // TODO placeholder to actual order from customer
+                        final order = CakeRecipe(
+                          baseShape: 'round',
+                          creamColor: 'pink',
+                          topping: 'strawberry',
+                        );
+
+                        // ... inside onTap:
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CakeGameScreen(targetRecipe: order),
+                          ),
+                        );
+
+                        if (result != null) {
+                          if (result == true) {
+                            // TODO maybe customer will react differently based on order
+                            print('Correct! Customer happy!');
+                          } else {
+                            // TODO maybe customer will react differently based on order
+                            print('Wrong order!');
+                          }
+                        }
+                      },
+                    ),
                   ),
                 ),
               ],
@@ -191,7 +246,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black,
             blurRadius: 4,
             offset: Offset(0, 2),
           ),
