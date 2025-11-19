@@ -14,20 +14,17 @@ class Recipe {
 }
 
 class CakeRecipe {
-  final String baseShape;  // 'round', 'square'
-  final String creamColor; // 'white', 'pink', 'brown'
-  final String topping;    // 'strawberry', 'sprinkles', 'chocolate'
+  final String creamColor; // 'white', 'pink', 'brown', 'blue'
+  final String topping;    // 'strawberry', 'sprinkles', 'chocolate', 'cherry'
 
   CakeRecipe({
-    required this.baseShape,
     required this.creamColor,
     required this.topping,
   });
 
   // Check if two recipes match
   bool matches(CakeRecipe other) {
-    return baseShape == other.baseShape &&
-        creamColor == other.creamColor &&
+    return creamColor == other.creamColor &&
         topping == other.topping;
   }
 }
