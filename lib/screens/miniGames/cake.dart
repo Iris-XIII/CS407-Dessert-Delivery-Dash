@@ -358,7 +358,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                               // Prevent clicks on the hidden text
                               ignoring: selectedCream != null || selectedTopping != null,
                               child: Text(
-                                'Select\nCream\n& Topping',
+                                'Select\nCream & Topping',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: 'Caveat',
