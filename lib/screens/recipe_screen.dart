@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/recipe.dart';
 
 class RecipeScreen extends StatefulWidget {
   final int dayNumber;
@@ -17,28 +18,105 @@ class RecipeScreen extends StatefulWidget {
 }
 
 class _RecipeScreenState extends State<RecipeScreen> {
-  // Example recipe data
-  final Map<String, String> _recipes = {
-    'Pancakes':
-    'Ingredients:\n- 1 cup flour\n- 1 egg\n- 1 cup milk\n\nSteps:\n1. Mix ingredients.\n2. Cook on a pan.\n3. Serve with syrup.',
-    'Salad':
-    'Ingredients:\n- Lettuce\n- Tomato\n- Cucumber\n\nSteps:\n1. Chop veggies.\n2. Toss with dressing.\n3. Serve fresh.',
-    'Spaghetti':
-    'Ingredients:\n- Spaghetti noodles\n- Tomato sauce\n- Garlic, onions\n\nSteps:\n1. Boil noodles.\n2. Make sauce.\n3. Combine and serve.',
-    'Cupcakes':
-    'Ingredients:\n- 2 cups flour\n- 1 cup sugar\n- 2 eggs\n\nSteps:\n1. Mix batter.\n2. Bake for 20 mins.\n3. Frost and enjoy!',
-  };
+  final List<Map<String, dynamic>> _allRecipes = [
+    // Cake Recipes
+    {
+      'name': 'Strawberry Delight Cake',
+      'object': CakeRecipe(
+        creamColor: 'pink',
+        topping: 'strawberry',
+      ),
+    },
+    {
+      'name': 'Chocolate Chip Cake',
+      'object': CakeRecipe(
+        creamColor: 'brown',
+        topping: 'chocolate',
+      ),
+    },
 
-  String? _selectedRecipe;
+    // Milk Tea Recipes
+    {
+      'name': 'Brown Sugar Milk Tea',
+      'object': MilkTeaRecipe(
+        teaBase: 'black',
+        sweetness: 'regular',
+        topping: 'boba',
+      ),
+    },
+    {
+      'name': 'Light Taro Pudding Tea',
+      'object': MilkTeaRecipe(
+        teaBase: 'taro',
+        sweetness: 'light',
+        topping: 'pudding',
+      ),
+    },
+    {
+      'name': 'Green Tea No Sugar',
+      'object': MilkTeaRecipe(
+        teaBase: 'green',
+        sweetness: 'none',
+        topping: 'none',
+      ),
+    },
+  ];
+
+  Map<String, dynamic>? _selectedRecipeMap;
 
   @override
   void initState() {
     super.initState();
-    _selectedRecipe = _recipes.keys.first; // Default to first recipe
+    _selectedRecipeMap = _allRecipes.first; // Default to the first recipe
+  }
+
+  // Helper method to format recipe details based on type
+  String _formatRecipeDetails(dynamic recipeObject) {
+    if (recipeObject is Recipe) {
+      // Logic for the base Recipe
+      String ingredientsList = recipeObject.ingredients.map((i) => '- $i').join('\n');
+      return '''
+Ingredients:
+$ingredientsList
+
+Preparation Time: ${recipeObject.preparationTime} minutes
+
+Selling Price: \$${recipeObject.price.toStringAsFixed(2)}
+''';
+    } else if (recipeObject is CakeRecipe) {
+      // Logic for CakeRecipe
+      return '''
+Cake Type: Custom Cake
+
+Specifications:
+- Cream Color: ${recipeObject.creamColor.toUpperCase()}
+- Topping: ${recipeObject.topping.toUpperCase()}
+
+NOTE: Prices and Preparation Times are determined by the customer order.
+''';
+    } else if (recipeObject is MilkTeaRecipe) {
+      // Logic for MilkTeaRecipe
+      // Uses the helper methods defined in your MilkTeaRecipe model
+      return '''
+Milk Tea Type: Custom Drink
+
+Order Description:
+${recipeObject.getFullOrderDescription()}
+
+Details:
+- Tea Base: ${recipeObject.getTeaBaseName()}
+- Sweetness: ${recipeObject.getSweetnessName()}
+- Topping: ${recipeObject.getToppingName()}
+''';
+    }
+    return 'Recipe details unavailable for this type.';
   }
 
   @override
   Widget build(BuildContext context) {
+    // Determine the name for display. The 'name' key in the map holds the descriptive title.
+    String recipeName = _selectedRecipeMap?['name'] ?? 'Select a recipe';
+
     return Scaffold(
       body: Stack(
         children: [
@@ -58,10 +136,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: Colors.white.withOpacity(0.85),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: Colors.black.withOpacity(0.1),
                         blurRadius: 5,
                         offset: const Offset(0, 2),
                       ),
@@ -105,7 +183,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                         ),
                       ),
 
-                      // Right - Nav buttons
+                      // Right - Nav buttons (using the corrected _buildIconButton)
                       Row(
                         children: [
                           _buildIconButton(
@@ -150,26 +228,26 @@ class _RecipeScreenState extends State<RecipeScreen> {
                         width: 150,
                         margin: const EdgeInsets.only(top: 10, bottom: 10, left: 10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: Colors.white.withOpacity(0.85),
                           borderRadius: BorderRadius.circular(15),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
+                              color: Colors.black.withOpacity(0.1),
                               blurRadius: 5,
                               offset: const Offset(0, 2),
                             ),
                           ],
                         ),
                         child: ListView.builder(
-                          itemCount: _recipes.keys.length,
+                          itemCount: _allRecipes.length,
                           itemBuilder: (context, index) {
-                            String recipeName = _recipes.keys.elementAt(index);
-                            bool isSelected = recipeName == _selectedRecipe;
+                            Map<String, dynamic> recipeMap = _allRecipes[index];
+                            bool isSelected = recipeMap['name'] == _selectedRecipeMap?['name'];
 
                             return GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  _selectedRecipe = recipeName;
+                                  _selectedRecipeMap = recipeMap;
                                 });
                               },
                               child: Container(
@@ -182,7 +260,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
-                                  recipeName,
+                                  recipeMap['name'],
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 20,
@@ -205,17 +283,17 @@ class _RecipeScreenState extends State<RecipeScreen> {
                           margin: const EdgeInsets.all(10),
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: Colors.white.withOpacity(0.85),
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
+                                color: Colors.black.withOpacity(0.1),
                                 blurRadius: 5,
                                 offset: const Offset(0, 2),
                               ),
                             ],
                           ),
-                          child: _selectedRecipe == null
+                          child: _selectedRecipeMap == null
                               ? const Center(
                             child: Text(
                               'Select a recipe from the sidebar',
@@ -230,8 +308,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Recipe Name (from the Map's 'name' key)
                                 Text(
-                                  _selectedRecipe!,
+                                  recipeName,
                                   style: const TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
@@ -240,8 +319,9 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 10),
+                                // Recipe Details (using the dynamic object from the Map)
                                 Text(
-                                  _recipes[_selectedRecipe]!,
+                                  _formatRecipeDetails(_selectedRecipeMap!['object']),
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontFamily: 'Caveat',
@@ -264,7 +344,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
     );
   }
 
-  // Reuse same icon button style
+  // Reuse same icon button style (using .withOpacity for correctness)
   Widget _buildIconButton({required IconData icon, required VoidCallback onPressed}) {
     return Container(
       decoration: BoxDecoration(
@@ -272,7 +352,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
