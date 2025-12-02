@@ -24,8 +24,7 @@ class DessertDeliveryDash extends StatelessWidget {
       routes: {
         '/': (context) => HomeScreen(),
         '/starting': (context) => StartPage(),
-        // TODO change these after implement each screen
-        // '/profile': (context) => ProfileScreen(),
+        '/profile': (context) => ProfileScreen(),
         '/ending': (context) => EndingScreen(),
         '/kitchen': (context) => KitchenScreen(),
         '/customer-reception': (context) => CustomerReceptionScreen(
@@ -40,7 +39,7 @@ class DessertDeliveryDash extends StatelessWidget {
             ['🧁'],
           ],
         ),
-        // '/recipe': (context) => RecipeScreen(),
+        '/recipe': (context) => RecipeScreen(),
         '/settings': (context) => SettingsScreen(),
       },
     );
