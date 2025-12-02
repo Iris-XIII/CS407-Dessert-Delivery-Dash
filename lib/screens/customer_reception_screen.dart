@@ -1,13 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class CustomerReceptionScreen extends StatelessWidget {
-  const CustomerReceptionScreen({Key? key}) : super(key: key);
+class CustomerReceptionScreen extends StatefulWidget {
+  final String characterAsset;
+  final int initialDay;
+  final int initialMoney;
+  final int initialCustomers;
+  final String initialTime;
+  final List<List<String>> initialOrders;
+
+  const CustomerReceptionScreen({
+    super.key,
+    required this.characterAsset,
+    required this.initialDay,
+    required this.initialMoney,
+    required this.initialCustomers,
+    required this.initialTime,
+    required this.initialOrders,
+  });
+
+  @override
+  State<CustomerReceptionScreen> createState() => _CustomerReceptionScreenState();
+}
+
+class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
+  late String characterAsset;
+  late int day;
+  late int money;
+  late int customers;
+  late String time;
+  late List<List<String>> orders;
+
+  @override
+  void initState() {
+    super.initState();
+    characterAsset = widget.characterAsset;
+    day = widget.initialDay;
+    money = widget.initialMoney;
+    time = widget.initialTime;
+    customers = widget.initialCustomers;
+    // make a copy so we can mutate safely
+    orders = widget.initialOrders
+        .map((row) => List<String>.from(row))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     const beige = Color(0xFFE6D3B8);
     const panel = Color(0xFFFFF3D6);
+    final size = MediaQuery.of(context).size;
+    final w = size.width;
+    final h = size.height;
 
     Future<void> showPauseDialog(
         BuildContext context, {
@@ -28,12 +72,34 @@ class CustomerReceptionScreen extends StatelessWidget {
             'assets/images/ReceptionPage.jpg',
             fit: BoxFit.cover,
           ),
-
+          Positioned(
+            left: -70,
+            right: 0,
+            bottom: h * .05, // tweak until they sit right at the counter
+            child: IgnorePointer(
+              child: Image.asset(
+                'assets/images/$characterAsset',
+                height: h * .55,
+              ),
+            ),
+          ),
+          // 2️⃣ Counter foreground overlay (ABOVE characters, BELOW UI)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: IgnorePointer(
+              // IgnorePointer so it doesn't block taps on your GestureDetector
+              child: Image.asset(
+                'assets/images/Counter.png',
+                fit: BoxFit.fitWidth,
+                //width: w,
+              ),
+            ),
+          ),
           SafeArea(
             child: LayoutBuilder(
               builder: (context, c) {
-                final w = c.maxWidth;
-                final h = c.maxHeight;
 
                 const edgePad = EdgeInsets.symmetric(horizontal: 0, vertical: 12);
 
@@ -62,13 +128,13 @@ class CustomerReceptionScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Day + Time
-                          Text('Day X',
+                          Text('Day $day',
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineMedium
                                   ?.copyWith(fontWeight: FontWeight.w700, color: Colors.black87)),
                           const SizedBox(height: 4),
-                          Text('Time: 12:05',
+                          Text('Time: $time',
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -84,20 +150,20 @@ class CustomerReceptionScreen extends StatelessWidget {
                     right: 6,
                     top: 12,
                     child: SizedBox(
-                      width: w * 0.3,
+                      width: w * 0.45,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('Level: 3',
+                              Text('Customers: $customers',
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleLarge
                                       ?.copyWith(fontWeight: FontWeight.w600)),
                               const SizedBox(width: 16),
-                              Text('Money: \$245',
+                              Text('Money: $money',
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleLarge
@@ -129,6 +195,13 @@ class CustomerReceptionScreen extends StatelessWidget {
                                 icon: Icons.kitchen_sharp,
                                 onPressed: () {
                                   Navigator.pushNamed(context, '/kitchen');
+                                },
+                              ),
+                              SizedBox(width: 8),
+                              PinkIconButton(
+                                icon: Icons.crop_square_sharp,
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/ending');
                                 },
                               ),
                             ],

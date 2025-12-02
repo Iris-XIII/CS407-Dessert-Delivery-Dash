@@ -130,7 +130,7 @@ class EndingScreen extends StatelessWidget {
                         context,
                         label: 'New Day',
                         onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/kitchen');
+                          Navigator.pushReplacementNamed(context, '/customer-reception');
                         },
                       ),
                     ],

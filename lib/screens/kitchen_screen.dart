@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import '../models/recipe.dart';
+import 'miniGames/cake.dart'; // Assuming this imports CakeGameScreen
+import 'miniGames/milk_tea.dart';  // import milk tea game screen
 import 'dart:async';
+
 
 class KitchenScreen extends StatefulWidget {
   final int dayNumber;
@@ -52,6 +56,48 @@ class _KitchenScreenState extends State<KitchenScreen> {
     _timer.cancel();
     super.dispose();
   }
+
+  // Helper widget for the clickable cake image/button (now uses cake.png)
+  Widget _buildCakeButton({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        // Retaining dimensions for tap target size
+        width: 100,
+        height: 100,
+        child: Center(
+          // Replaced Icon with the Image.asset using the new asset path
+          child: Image.asset(
+            'assets/images/cake.png',
+            width: 95, // Image size slightly smaller than container for padding
+            height: 95,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  // Helper widget for the clickable milk tea image/button
+  Widget _buildMilkTeaButton({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 200,
+        height: 200,
+        child: Center(
+          child: Image.asset(
+            'assets/images/milk_tea.png',
+            width: 190,
+            height: 290,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -170,10 +216,109 @@ class _KitchenScreenState extends State<KitchenScreen> {
                   ),
                 ),
 
-                // Kitchen workspace area (placeholder for now)
+                // Kitchen workspace area - Both Dessert Buttons
                 Expanded(
-                  child: Container(
-                    // Food items and cooking area will go here
+                  child: Stack(
+                    children: [
+                      // CAKE BUTTON - Left side
+                      Positioned(
+                        left: 195,
+                        top: 45,
+                        bottom: 0,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildCakeButton(
+                              onTap: () async {
+                                // TODO: Get actual order from customer
+                                final order = CakeRecipe(
+                                  creamColor: 'pink',
+                                  topping: 'strawberry',
+                                );
+
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        CakeGameScreen(targetRecipe: order),
+                                  ),
+                                );
+
+                                if (result != null) {
+                                  if (result == true) {
+                                    // TODO maybe customer will react differently based on order
+                                    print('Correct cake! Customer happy!');
+                                  } else {
+                                    // TODO maybe customer will react differently based on order
+                                    print('Wrong cake order!');
+                                  }
+                                }
+                              },
+                            ),
+                            SizedBox(height: 0),
+                            Text(
+                              'Cake',
+                              style: TextStyle(
+                                fontFamily: 'Caveat',
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF8B6F8F),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // MILK TEA BUTTON - Right side (larger and more to the right)
+                      Positioned(
+                        right: 40,
+                        top: 10,
+                        bottom: 0,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildMilkTeaButton(
+                              onTap: () async {
+                                // TODO: Get actual order from customer
+                                final order = MilkTeaRecipe(
+                                  teaBase: 'taro',
+                                  sweetness: 'regular',
+                                  topping: 'boba',
+                                );
+
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        MilkTeaGameScreen(targetRecipe: order),
+                                  ),
+                                );
+
+                                if (result != null) {
+                                  if (result == true) {
+                                    // TODO maybe customer will react differently based on order
+                                    print('Correct milk tea! Customer happy!');
+                                  } else {
+                                    // TODO maybe customer will react differently based on order
+                                    print('Wrong milk tea order!');
+                                  }
+                                }
+                              },
+                            ),
+                            SizedBox(height: 0),
+                            Text(
+                              'Milk Tea',
+                              style: TextStyle(
+                                fontFamily: 'Caveat',
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF8B6F8F),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -191,7 +336,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 4,
             offset: Offset(0, 2),
           ),

@@ -7,15 +7,8 @@ import 'screens/kitchen_screen.dart';
 import 'screens/customer_reception_screen.dart';
 import 'screens/recipe_screen.dart';
 import 'screens/settings_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+void main() {
   runApp(DessertDeliveryDash());
 }
 
@@ -32,11 +25,22 @@ class DessertDeliveryDash extends StatelessWidget {
         '/': (context) => HomeScreen(),
         '/starting': (context) => StartPage(),
         // TODO change these after implement each screen
-        '/profile': (context) => ProfileScreen(),
+        // '/profile': (context) => ProfileScreen(),
         '/ending': (context) => EndingScreen(),
         '/kitchen': (context) => KitchenScreen(),
-        '/customer-reception': (context) => CustomerReceptionScreen(),
-        '/recipe': (context) => RecipeScreen(),
+        '/customer-reception': (context) => CustomerReceptionScreen(
+          characterAsset: 'Deer.png',
+          initialDay: 2,
+          initialMoney: 100,
+          initialCustomers: 7,
+          initialTime: '8:00',
+          initialOrders: const [
+            ['🍞', '🧁'],
+            ['🍞', '🍞', '🍪'],
+            ['🧁'],
+          ],
+        ),
+        // '/recipe': (context) => RecipeScreen(),
         '/settings': (context) => SettingsScreen(),
       },
     );
