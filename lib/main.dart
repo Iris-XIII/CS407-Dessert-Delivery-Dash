@@ -29,7 +29,7 @@ class DessertDeliveryDash extends StatelessWidget {
         '/ending': (context) => EndingScreen(),
         '/kitchen': (context) => KitchenScreen(),
         '/customer-reception': (context) => CustomerReceptionScreen(
-          characterAsset: 'Deer.png',
+          characterAsset: 'Owl.png',
           initialDay: 2,
           initialMoney: 100,
           initialCustomers: 7,
