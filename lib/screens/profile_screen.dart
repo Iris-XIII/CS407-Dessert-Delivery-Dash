@@ -145,6 +145,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _submitAuthForm() async {
     setState(() => isLoading = true);
     try {
+      User? user;
+      if (isLogin) {
+        final userCredential = await _auth.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        user = userCredential.user;
+      } else {
+        final userCredential = await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        user = userCredential.user;
+        await user?.updateDisplayName(_emailController.text.split('@').first);
+      }
+
+      if (user != null) {
+        setState(() {
+          _usernameController.text = user?.displayName ?? 'New User';
+          // Reset to new user's photoURL or the default asset
+          _profilePhotoPath = user?.photoURL ?? 'assets/avatars/default.png';
+          _bioController.text = 'A short bio about me.';
+        });
+      }
+      /*
       if (isLogin) {
         await _auth.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
@@ -157,6 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
         await userCredential.user?.updateDisplayName(_emailController.text.split('@').first);
       }
+       */
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "Authentication failed")),
@@ -354,7 +380,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-
   Widget _buildProfileInfo(User user) {
     const TextStyle labelStyle = TextStyle(fontSize: 18, color: Color(0xFF8B6F8F));
     const TextStyle valueStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
@@ -454,7 +479,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   : ElevatedButton(
                 onPressed: () async {
                   await _auth.signOut();
-                  setState(() {});
+                  setState(() {
+                    _profilePhotoPath = null;
+                    _usernameController.text = '';
+                  });
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text("Log Out", style: TextStyle(color: Colors.white)),
