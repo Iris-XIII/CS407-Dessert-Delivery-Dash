@@ -128,7 +128,7 @@ class _EndingScreenState extends State<EndingScreen> {
                       // Go to Starting button
                       _buildButton(
                         context,
-                        label: 'Starting',
+                        label: 'Home',
                         onPressed: () {
                           Navigator.pushReplacementNamed(context, '/starting');
                         },

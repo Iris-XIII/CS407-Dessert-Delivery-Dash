@@ -36,9 +36,16 @@ class AudioManager {
   Future<void> playMusic(String trackName) async {
     if (!_isInitialized) await initialize();
 
+    // Store the current track name for later
+    _currentTrack = trackName;
+
     // Don't restart if already playing this track
-    if (_currentTrack == trackName && _musicPlayer.state == PlayerState.playing) {
-      return;
+    if (_musicPlayer.state == PlayerState.playing) {
+      // Check if it's the same track by comparing source
+      final currentSource = _musicPlayer.source;
+      if (currentSource is AssetSource && currentSource.path == 'audio/$trackName') {
+        return;
+      }
     }
 
     // Stop current music if playing
@@ -48,7 +55,6 @@ class AudioManager {
 
     // Only play if background music is enabled
     if (_backgroundMusicEnabled) {
-      _currentTrack = trackName;
       await _musicPlayer.play(AssetSource('audio/$trackName'));
     }
   }
@@ -56,7 +62,7 @@ class AudioManager {
   // Stop music
   Future<void> stopMusic() async {
     await _musicPlayer.stop();
-    _currentTrack = null;
+    // Keep _currentTrack so we can resume it later
   }
 
   // Pause music
@@ -67,7 +73,13 @@ class AudioManager {
   // Resume music
   Future<void> resumeMusic() async {
     if (_backgroundMusicEnabled && _currentTrack != null) {
-      await _musicPlayer.resume();
+      // If music was paused, resume it
+      if (_musicPlayer.state == PlayerState.paused) {
+        await _musicPlayer.resume();
+      } else {
+        // Otherwise, restart the track
+        await playMusic(_currentTrack!);
+      }
     }
   }
 
@@ -83,9 +95,11 @@ class AudioManager {
 
     if (!enabled) {
       await stopMusic();
-    } else if (_currentTrack != null) {
+    } else {
       // Resume the last track if there was one
-      await playMusic(_currentTrack!);
+      if (_currentTrack != null) {
+        await playMusic(_currentTrack!);
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/audio_manager.dart';
 import 'kitchen_screen.dart';
 import '../data/characters.dart';   // contains kCharacters
 import '../data/days.dart';         // contains kDays
@@ -62,6 +63,8 @@ class CustomerReceptionScreen extends StatefulWidget {
 }
 
 class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
+  final AudioManager _audioManager = AudioManager();
+
   // Core state driven by your day + character data
   late int currCustomer;
   late int day;
@@ -92,6 +95,11 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
 
     customers = todaysCustomers.length;
 
+    _playMusic();
+  }
+
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Game Pages.mp3');
   }
 
   @override
@@ -251,23 +259,27 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
                                 PinkIconButton(
                                   icon: Icons.person,
                                   onPressed: () {
-                                    Navigator.pushNamed(
-                                        context, '/profile');
+                                    Navigator.pushNamed(context, '/profile');
                                   },
                                 ),
                                 const SizedBox(width: 8),
                                 PinkIconButton(
                                   icon: Icons.kitchen_sharp,
                                   onPressed: () async {
-                                    final result = await Navigator.push<KitchenGameResult>(
+                                    final result =
+                                    await Navigator.push<KitchenGameResult>(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => KitchenScreen(
                                           day: day,
                                           currCustomer: currCustomer,
-                                          money: money,
                                           customer: todaysCustomers[currCustomer],
+                                          money: money,
+                                          cakeFrosting: null,
+                                          cakeTopping: null,
                                           cakeTries: 0,
+                                          teaBase: null,
+                                          teaTopping: null,
                                           teaTries: 0,
                                         ),
                                       ),
