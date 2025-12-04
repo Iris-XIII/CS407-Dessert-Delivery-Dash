@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/audio_manager.dart';
 
 class CustomerReceptionScreen extends StatefulWidget {
   final String characterAsset;
@@ -24,6 +25,7 @@ class CustomerReceptionScreen extends StatefulWidget {
 }
 
 class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
+  final AudioManager _audioManager = AudioManager();
   late String characterAsset;
   late int day;
   late int money;
@@ -43,6 +45,11 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
     orders = widget.initialOrders
         .map((row) => List<String>.from(row))
         .toList();
+    _playMusic();
+  }
+
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Game Pages.mp3');
   }
 
   @override
@@ -83,7 +90,7 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
               ),
             ),
           ),
-          // 2️⃣ Counter foreground overlay (ABOVE characters, BELOW UI)
+          // Counter foreground overlay (ABOVE characters, BELOW UI)
           Positioned(
             left: 0,
             right: 0,
@@ -178,8 +185,8 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
                                 icon: Icons.pause,
                                 onPressed: () {
                                   showPauseDialog(
-                                      context,
-                                      onQuit: () => Navigator.pushNamed(context, '/starting'),
+                                    context,
+                                    onQuit: () => Navigator.pushNamed(context, '/starting'),
                                   );
                                 },
                               ),
@@ -326,11 +333,11 @@ class PauseDialog extends StatelessWidget {
       insetPadding: const EdgeInsets.symmetric(horizontal: 200, vertical: 24),
       child: Container(
         decoration: BoxDecoration(
-          color: pink.withOpacity(.35),              // ✅ same soft pink
+          color: pink.withOpacity(.35),              // same soft pink
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.18), // ✅ soft shadow
+              color: Colors.black.withOpacity(0.18), // soft shadow
               blurRadius: 18,
               offset: const Offset(0, 10),
             ),

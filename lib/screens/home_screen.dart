@@ -1,11 +1,27 @@
-// screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'starting_screen.dart';
+import '../services/audio_manager.dart';
 
-import 'package:flutter/material.dart';
-import 'starting_screen.dart';
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
-class HomeScreen extends StatelessWidget {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final AudioManager _audioManager = AudioManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _playMusic();
+  }
+
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Home Page.mp3');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,7 +30,7 @@ class HomeScreen extends StatelessWidget {
           image: DecorationImage(
             image: AssetImage('assets/images/HomePage.jpeg'),
             fit: BoxFit.cover,
-              alignment: Alignment(0, 0.3) //shift the image up slightly
+            alignment: Alignment(0, 0.3), //shift the image up slightly
           ),
         ),
         child: Center(
@@ -24,14 +40,14 @@ class HomeScreen extends StatelessWidget {
               SizedBox(height: 170), // Adjust to position on door
               Padding(
                 padding: EdgeInsets.only(left: 170),
-              // Round "Enter" button
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => StartPage()),
-                  );
-                },
+                // Round "Enter" button
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => StartPage()),
+                    );
+                  },
                   child: Center(
                     child: Text(
                       'Enter',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/audio_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -9,6 +10,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final AudioManager _audioManager = AudioManager();
+
   // Audio Settings
   bool _backgroundMusic = true;
   bool _soundEffects = true;
@@ -261,18 +264,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Background Music',
               subtitle: 'Play music during gameplay',
               value: _backgroundMusic,
-              onChanged: (value) {
+              onChanged: (value) async {
                 setState(() => _backgroundMusic = value);
-                _saveSetting('backgroundMusic', value);
+                await _saveSetting('backgroundMusic', value);
+                // Update AudioManager
+                await _audioManager.setBackgroundMusicEnabled(value);
               },
             ),
             _buildSliderTile(
               title: 'Music Volume',
               value: _musicVolume,
               enabled: _backgroundMusic,
-              onChanged: (value) {
+              onChanged: (value) async {
                 setState(() => _musicVolume = value);
-                _saveSetting('musicVolume', value);
+                await _saveSetting('musicVolume', value);
+                // Update AudioManager volume
+                await _audioManager.setVolume(value);
               },
             ),
             const Divider(height: 1),
@@ -413,7 +420,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const Text(
+            Text(
               '• Iris Xu\n• Rae Dong\n• Maria Shackett\n• Ben Stroeher',
               style: TextStyle(fontSize: 16, fontFamily: 'Caveat'),
             ),
@@ -445,5 +452,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-
 }

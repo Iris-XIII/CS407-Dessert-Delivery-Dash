@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
+import '../services/audio_manager.dart';
 import 'miniGames/cake.dart'; // Assuming this imports CakeGameScreen
 import 'miniGames/milk_tea.dart';  // import milk tea game screen
 import 'dart:async';
@@ -22,6 +23,7 @@ class KitchenScreen extends StatefulWidget {
 }
 
 class _KitchenScreenState extends State<KitchenScreen> {
+  final AudioManager _audioManager = AudioManager();
   late int _seconds;
   late Timer _timer;
 
@@ -30,6 +32,11 @@ class _KitchenScreenState extends State<KitchenScreen> {
     super.initState();
     _seconds = 720; // 12 minutes = 720 seconds (12:00)
     _startTimer();
+    _playMusic();
+  }
+
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Game Pages.mp3');
   }
 
   void _startTimer() {
