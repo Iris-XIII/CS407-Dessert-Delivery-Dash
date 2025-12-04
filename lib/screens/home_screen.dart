@@ -24,10 +24,13 @@ class HomeScreen extends StatelessWidget {
               // Round "Enter" button
               child: InkWell(
                 onTap: () {
+                  Navigator.pushNamed(context, '/profile');
+                  /*
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => StartPage()),
                   );
+                   */
                 },
                   child: Center(
                     child: Text(
