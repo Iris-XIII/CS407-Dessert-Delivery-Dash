@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For kDebugMode
 import '../../models/recipe.dart';
 import '../../utils/shake_detector.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MilkTeaGameScreen extends StatefulWidget {
   final MilkTeaRecipe targetRecipe;
@@ -26,6 +27,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
   // Shake detector
   late ShakeDetector shakeDetector;
   bool isShaking = false;
+  bool _shakeEnabled = true; //shaking setting
 
   // Animations
   late AnimationController teaController;
@@ -36,9 +38,19 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
   // Required number of shakes
   final int requiredShakes = 3;
 
+  //load shaking setting
+  Future<void> _loadShakeSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _shakeEnabled = prefs.getBool('shakeToMix') ?? true;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadShakeSetting();
+
 
     // Initialize animation controllers
     teaController = AnimationController(
@@ -491,8 +503,8 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
           ? () {
         setState(() {
           selectedSweetness = value;
-          // Start shake detector when sweetness is selected
-          if (canShake && shakeCount < requiredShakes) {
+          // Start shake detector when sweetness is selected (only if enabled)
+          if (canShake && shakeCount < requiredShakes && _shakeEnabled) {
             shakeDetector.startListening();
           }
         });
@@ -637,7 +649,9 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
           ),
           SizedBox(height: 8),
           Text(
-            needsMoreShakes ? '📱 Shake Device!' : '✅ Mixed!',
+            needsMoreShakes
+                ? (_shakeEnabled ? '📱 Shake Device!' : '👆 Tap to Mix!')
+                : '✅ Mixed!',
             style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 22,
@@ -655,30 +669,37 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
             ),
           ),
 
-          // DEBUG BUTTON - Only shows in debug mode on simulator
-          if (kDebugMode && needsMoreShakes)
+          // TAP BUTTON - Shows when shake is disabled
+          if (!_shakeEnabled && needsMoreShakes)
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: ElevatedButton(
-                onPressed: () {
-                  // Manually trigger shake for testing
-                  if (shakeCount < requiredShakes) {
-                    setState(() {
-                      shakeCount++;
-                      isShaking = true;
-                    });
-                    shakeController.forward(from: 0).then((_) {
-                      setState(() {
-                        isShaking = false;
-                      });
-                    });
+                onPressed: _simulateShake,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFF69B4),
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  '🧋 Mix!',
+                  style: TextStyle(
+                    fontFamily: 'Caveat',
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
 
-                    // Stop listening once we have enough shakes
-                    if (shakeCount >= requiredShakes) {
-                      shakeDetector.stopListening();
-                    }
-                  }
-                },
+          // DEBUG BUTTON - Only shows in debug mode on simulator
+          if (kDebugMode && needsMoreShakes && _shakeEnabled)
+            Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: ElevatedButton(
+                onPressed: _simulateShake,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -700,6 +721,25 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
         ],
       ),
     );
+  }
+
+// Add this helper method
+  void _simulateShake() {
+    if (shakeCount < requiredShakes) {
+      setState(() {
+        shakeCount++;
+        isShaking = true;
+      });
+      shakeController.forward(from: 0).then((_) {
+        setState(() {
+          isShaking = false;
+        });
+      });
+
+      if (shakeCount >= requiredShakes) {
+        shakeDetector.stopListening();
+      }
+    }
   }
 
   Widget _getToppingIcon(String topping) {
