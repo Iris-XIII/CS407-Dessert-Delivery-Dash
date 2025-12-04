@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart'; // For kDebugMode
 import '../../models/recipe.dart';
 import '../../utils/shake_detector.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 class MilkTeaGameScreen extends StatefulWidget {
   final MilkTeaRecipe targetRecipe;
@@ -28,6 +29,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
   late ShakeDetector shakeDetector;
   bool isShaking = false;
   bool _shakeEnabled = true; //shaking setting
+  bool _hapticEnabled = true; //haptic
 
   // Animations
   late AnimationController teaController;
@@ -43,6 +45,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _shakeEnabled = prefs.getBool('shakeToMix') ?? true;
+      _hapticEnabled = prefs.getBool('hapticFeedback') ?? true;
     });
   }
 
@@ -91,9 +94,17 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
     super.dispose();
   }
 
+ //helper trigger vibration
+  void _vibrate() {
+    if (_hapticEnabled) {
+      HapticFeedback.mediumImpact();
+    }
+  }
+
   // Called when device is shaken
   void _onDeviceShaken() {
     if (canShake && shakeCount < requiredShakes) {
+      _vibrate(); //give vibrate feedback
       setState(() {
         shakeCount++;
         isShaking = true;
@@ -645,7 +656,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
           Icon(
             needsMoreShakes ? Icons.phone_android : Icons.check_circle,
             size: 35,
-            color: needsMoreShakes ? Color(0xFFFF69B4) : Color(0xFF87D68D),
+            color: needsMoreShakes ? Color(0xFFFFB6C1) : Color(0xFF87D68D),
           ),
           SizedBox(height: 8),
           Text(
@@ -676,7 +687,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
               child: ElevatedButton(
                 onPressed: _simulateShake,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFF69B4),
+                  backgroundColor: Color(0xFFFFB6C1),
                   padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -726,6 +737,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
 // Add this helper method
   void _simulateShake() {
     if (shakeCount < requiredShakes) {
+      _vibrate(); //trigger vibrate
       setState(() {
         shakeCount++;
         isShaking = true;

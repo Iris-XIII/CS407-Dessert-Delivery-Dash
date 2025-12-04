@@ -13,7 +13,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _backgroundMusic = true;
   bool _soundEffects = true;
   double _musicVolume = 0.7;
-  double _sfxVolume = 0.8;
 
   // Gameplay Settings
   bool _shakeToMix = true;
@@ -33,7 +32,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _backgroundMusic = prefs.getBool('backgroundMusic') ?? true;
       _soundEffects = prefs.getBool('soundEffects') ?? true;
       _musicVolume = prefs.getDouble('musicVolume') ?? 0.7;
-      _sfxVolume = prefs.getDouble('sfxVolume') ?? 0.8;
       _shakeToMix = prefs.getBool('shakeToMix') ?? true;
       _notifications = prefs.getBool('notifications') ?? true;
       _hapticFeedback = prefs.getBool('hapticFeedback') ?? true;
@@ -285,15 +283,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: (value) {
                 setState(() => _soundEffects = value);
                 _saveSetting('soundEffects', value);
-              },
-            ),
-            _buildSliderTile(
-              title: 'SFX Volume',
-              value: _sfxVolume,
-              enabled: _soundEffects,
-              onChanged: (value) {
-                setState(() => _sfxVolume = value);
-                _saveSetting('sfxVolume', value);
               },
             ),
           ],
