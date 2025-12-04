@@ -1,13 +1,47 @@
 import 'package:flutter/material.dart';
+import '../../models/game_character.dart';
 import '../../models/recipe.dart';
+import '../kitchen_screen.dart';
+
+class CakeMiniGameResult {
+  final String creamColor;
+  final String topping;
+  final int cakeTries;
+
+  const CakeMiniGameResult({
+    required this.creamColor,
+    required this.topping,
+    required this.cakeTries,
+  });
+}
 
 class CakeGameScreen extends StatefulWidget {
   final CakeRecipe targetRecipe;
+  final int day;
+  final int currCustomer;
+  final int money;
+  final GameCharacter customer;
+  final String? cakeFrosting;
+  final String? cakeTopping;
+  final int cakeTries;
+  final String? teaBase;
+  final String? teaTopping;
+  final int teaTries;
 
   const CakeGameScreen({
-    Key? key,
+    super.key,
     required this.targetRecipe,
-  }) : super(key: key);
+    required this.day,
+    required this.currCustomer,
+    required this.money,
+    required this.customer,
+    required this.teaTries,
+    required this.cakeTries,
+    this.cakeFrosting,
+    this.cakeTopping,
+    this.teaBase,
+    this.teaTopping
+  });
 
   @override
   State<CakeGameScreen> createState() => _CakeGameScreenState();
@@ -61,22 +95,23 @@ class _CakeGameScreenState extends State<CakeGameScreen>
   void _submitCake() {
     if (!isComplete) return;
 
-    // Updated: CakeRecipe no longer requires baseShape
+    // You can still use this for correctness if you want
     final playerRecipe = CakeRecipe(
       creamColor: selectedCream!,
       topping: selectedTopping!,
     );
-
     final isCorrect = widget.targetRecipe.matches(playerRecipe);
+    // (isCorrect is unused here, actual scoring can happen in Kitchen/Reception)
 
-    // Navigate directly to the customer reception page,
-    // passing the result as an argument, and replace the current screen.
-    Navigator.pushReplacementNamed(
-      context,
-      '/customer-reception',
-      arguments: isCorrect,
+    final result = CakeMiniGameResult(
+      creamColor: selectedCream!,
+      topping: selectedTopping!,
+      cakeTries: widget.cakeTries + 1,
     );
+
+    Navigator.pop(context, result);
   }
+
 
   // Custom handler for the AppBar back button/gesture
   void _handleBackToKitchen() {

@@ -2,15 +2,54 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For kDebugMode
 import '../../models/recipe.dart';
 import '../../utils/shake_detector.dart';
+import '../../models/game_character.dart';
+import '../kitchen_screen.dart';
+
+
+class MilkTeaMiniGameResult {
+  final String teaBase;
+  final String topping;
+  final String sweetness;
+  final int teaTries;
+
+  const MilkTeaMiniGameResult({
+    required this.teaBase,
+    required this.topping,
+    required this.sweetness,
+    required this.teaTries,
+  });
+}
+
+=======
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 
 class MilkTeaGameScreen extends StatefulWidget {
   final MilkTeaRecipe targetRecipe;
+  final int day;
+  final int currCustomer;
+  final int money;
+  final GameCharacter customer;
+  final String? cakeFrosting;
+  final String? cakeTopping;
+  final int cakeTries;
+  final String? teaBase;
+  final String? teaTopping;
+  final int teaTries;
 
   const MilkTeaGameScreen({
     Key? key,
     required this.targetRecipe,
+    required this.day,
+    required this.currCustomer,
+    required this.money,
+    required this.customer,
+    required this.teaTries,
+    required this.cakeTries,
+    this.cakeFrosting,
+    this.cakeTopping,
+    this.teaBase,
+    this.teaTopping
   }) : super(key: key);
 
   @override
@@ -141,16 +180,19 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       sweetness: selectedSweetness!,
       topping: selectedTopping!,
     );
-
     final isCorrect = widget.targetRecipe.matches(playerRecipe);
+    // again, you can use isCorrect later if you want
 
-    // Navigate to customer reception with result
-    Navigator.pushReplacementNamed(
-      context,
-      '/customer-reception',
-      arguments: isCorrect,
+    final result = MilkTeaMiniGameResult(
+      teaBase: selectedTeaBase!,
+      topping: selectedTopping!,
+      sweetness: selectedSweetness!,
+      teaTries: widget.teaTries + 1,
     );
+
+    Navigator.pop(context, result);
   }
+
 
   void _handleBackToKitchen() {
     Navigator.pop(context);
@@ -272,7 +314,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
             children: [
               // LEFT SIDE: Tea Base & Sweetness
               Container(
-                width: MediaQuery.of(context).size.width * 0.22,
+                width: MediaQuery.of(context).size.width * 0.3,
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: SingleChildScrollView(
                   child: Column(
@@ -357,7 +399,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
 
               // RIGHT SIDE: Toppings + Shake Section
               Container(
-                width: MediaQuery.of(context).size.width * 0.22,
+                width: MediaQuery.of(context).size.width * 0.35,
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: SingleChildScrollView(
                   child: Column(
@@ -420,7 +462,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
         teaController.forward(from: 0);
       },
       child: Container(
-        width: 75,
+        width: 50,
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
           color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
@@ -470,7 +512,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       }
           : null,
       child: Container(
-        width: 75,
+        width: 60,
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
           color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
@@ -523,7 +565,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       }
           : null,
       child: Container(
-        width: 75,
+        width: 50,
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
           color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
