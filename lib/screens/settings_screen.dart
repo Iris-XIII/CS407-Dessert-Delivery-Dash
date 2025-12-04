@@ -104,13 +104,10 @@ class SettingsScreen extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Color(0xFFFFB6C1).withOpacity(.75),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.person, color: Colors.white),
+                          // profile button
+                          _PinkIconButton(
+                              icon: Icons.person,
+                              onPressed: () => Navigator.pushNamed(context, '/profile'),
                           ),
                         ],
                       ),

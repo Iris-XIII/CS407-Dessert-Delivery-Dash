@@ -2,9 +2,6 @@
 import 'package:flutter/material.dart';
 import 'starting_screen.dart';
 
-import 'package:flutter/material.dart';
-import 'starting_screen.dart';
-
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
