@@ -1,13 +1,48 @@
 import 'package:flutter/material.dart';
+import '../../models/game_character.dart';
 import '../../models/recipe.dart';
+import '../../services/audio_manager.dart';
+import '../kitchen_screen.dart';
+
+class CakeMiniGameResult {
+  final String creamColor;
+  final String topping;
+  final int cakeTries;
+
+  const CakeMiniGameResult({
+    required this.creamColor,
+    required this.topping,
+    required this.cakeTries,
+  });
+}
 
 class CakeGameScreen extends StatefulWidget {
   final CakeRecipe targetRecipe;
+  final int day;
+  final int currCustomer;
+  final int money;
+  final GameCharacter customer;
+  final String? cakeFrosting;
+  final String? cakeTopping;
+  final int cakeTries;
+  final String? teaBase;
+  final String? teaTopping;
+  final int teaTries;
 
   const CakeGameScreen({
-    Key? key,
+    super.key,
     required this.targetRecipe,
-  }) : super(key: key);
+    required this.day,
+    required this.currCustomer,
+    required this.money,
+    required this.customer,
+    required this.teaTries,
+    required this.cakeTries,
+    this.cakeFrosting,
+    this.cakeTopping,
+    this.teaBase,
+    this.teaTopping
+  });
 
   @override
   State<CakeGameScreen> createState() => _CakeGameScreenState();
@@ -15,11 +50,11 @@ class CakeGameScreen extends StatefulWidget {
 
 class _CakeGameScreenState extends State<CakeGameScreen>
     with TickerProviderStateMixin {
-  // Removed selectedShape
+  final AudioManager _audioManager = AudioManager();
+
   String? selectedCream;
   String? selectedTopping;
 
-  // Asset paths mapping for toppings (Re-integrated for image assets)
   final Map<String, String> _toppingAssetPaths = const {
     'strawberry': 'assets/images/strawberry.png',
     'sprinkles': 'assets/images/sprinkles.png',
@@ -27,7 +62,6 @@ class _CakeGameScreenState extends State<CakeGameScreen>
     'cherry': 'assets/images/cherry.png',
   };
 
-  // Animations
   late AnimationController creamController;
   late AnimationController toppingController;
 
@@ -36,6 +70,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
   @override
   void initState() {
     super.initState();
+    _playMusic();
 
     creamController = AnimationController(
       vsync: this,
@@ -48,6 +83,10 @@ class _CakeGameScreenState extends State<CakeGameScreen>
     );
   }
 
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Game Pages.mp3');
+  }
+
   @override
   void dispose() {
     creamController.dispose();
@@ -55,32 +94,27 @@ class _CakeGameScreenState extends State<CakeGameScreen>
     super.dispose();
   }
 
-  // Updated: Only checks cream and topping
   bool get isComplete => selectedCream != null && selectedTopping != null;
 
   void _submitCake() {
     if (!isComplete) return;
 
-    // Updated: CakeRecipe no longer requires baseShape
     final playerRecipe = CakeRecipe(
       creamColor: selectedCream!,
       topping: selectedTopping!,
     );
-
     final isCorrect = widget.targetRecipe.matches(playerRecipe);
 
-    // Navigate directly to the customer reception page,
-    // passing the result as an argument, and replace the current screen.
-    Navigator.pushReplacementNamed(
-      context,
-      '/customer-reception',
-      arguments: isCorrect,
+    final result = CakeMiniGameResult(
+      creamColor: selectedCream!,
+      topping: selectedTopping!,
+      cakeTries: widget.cakeTries + 1,
     );
+
+    Navigator.pop(context, result);
   }
 
-  // Custom handler for the AppBar back button/gesture
   void _handleBackToKitchen() {
-    // Navigates back to the Kitchen screen (without returning a result)
     Navigator.pop(context);
   }
 
@@ -130,7 +164,6 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                   border: Border.all(color: Color(0xFFFFB6C1), width: 2),
                 ),
                 child: Text(
-                  // Updated modal text to remove shape reference
                   '${_formatName(widget.targetRecipe.creamColor)} Cream Cake + ${_formatName(widget.targetRecipe.topping)} Topping',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -179,16 +212,15 @@ class _CakeGameScreenState extends State<CakeGameScreen>
     return WillPopScope(
       onWillPop: () async {
         _handleBackToKitchen();
-        return false; // Prevent default back behavior
+        return false;
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text('Make Cake', style: TextStyle(fontFamily: 'Caveat', fontSize: 28)),
           backgroundColor: Color(0xFFFFB6C1),
-          // Override the back button action
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
-            onPressed: _handleBackToKitchen, // Calls the custom back handler
+            onPressed: _handleBackToKitchen,
           ),
           actions: [
             _buildAppBarIconButton(
@@ -207,7 +239,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch, // STRETCHES children vertically
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // LEFT: CREAM OPTIONS
               Container(
@@ -216,7 +248,6 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    // CREAM COLOR OPTIONS
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -241,24 +272,18 @@ class _CakeGameScreenState extends State<CakeGameScreen>
 
               SizedBox(width: 20),
 
-              // CENTER: CAKE PREVIEW AREA
+              // CENTER: CAKE PREVIEW
               Container(
                 width: MediaQuery.of(context).size.width * 0.35,
                 child: Column(
-                  // Use Spacers to manage vertical positioning
                   mainAxisAlignment: MainAxisAlignment.start,
-
                   children: [
-                    // Pushes the cake stack down into the center
                     const Spacer(),
-
-                    // Cake Stack (The actual cake drawing)
                     Stack(
                       alignment: Alignment.center,
                       clipBehavior: Clip.none,
                       children: [
                         Transform.translate(
-                          // plate position
                           offset: const Offset(0, 70),
                           child: Container(
                             width: 250,
@@ -268,7 +293,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                               borderRadius: BorderRadius.circular(15),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
+                                  color: Colors.black.withOpacity(0.2),
                                   blurRadius: 8,
                                   offset: Offset(0, 4),
                                 ),
@@ -276,22 +301,17 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                             ),
                           ),
                         ),
-
-                        // Cake layers (Base and Cream stacked vertically)
                         Transform.translate(
-                          // cake position
                           offset: const Offset(0, -30),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // topping position
                               SizedBox(
                                 height: 100,
                                 child: selectedTopping != null
                                     ? AnimatedBuilder(
                                   animation: toppingController,
                                   builder: (context, child) {
-                                    // Localized drop animation relative to the 50px box's top edge
                                     final dropHeight = 80.0;
                                     return Transform.translate(
                                       offset: Offset(
@@ -301,14 +321,10 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                                       child: child,
                                     );
                                   },
-                                  // The child is now the visually styled topping preview
                                   child: _buildToppingPreview(selectedTopping!),
                                 )
-                                    : const SizedBox.shrink(), // Takes up the 50px space when not visible
+                                    : const SizedBox.shrink(),
                               ),
-
-
-                              // 3. Cream layer
                               AnimatedContainer(
                                 duration: Duration(milliseconds: 400),
                                 curve: Curves.easeOut,
@@ -318,12 +334,10 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                                   borderRadius: BorderRadius.circular(15.0),
                                   color: selectedCream != null
                                       ? _creamToColor(selectedCream)
-                                      : _baseCakeColor.withValues(alpha: 0.8),
+                                      : _baseCakeColor.withOpacity(0.8),
                                   boxShadow: selectedCream != null ? [BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))] : null,
                                 ),
                               ),
-
-                              // 2. Base cake
                               Container(
                                 width: 170,
                                 height: 60,
@@ -336,7 +350,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Color(0xFFFFB6C1).withValues(alpha: 0.3),
+                                      color: Color(0xFFFFB6C1).withOpacity(0.3),
                                       blurRadius: 10,
                                       offset: Offset(0, 5),
                                     ),
@@ -346,16 +360,11 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                             ],
                           ),
                         ),
-
-                        // 6. Placeholder text (ADJUSTED POSITION)
                         Transform.translate(
-                          // Adjusted offset to position the text above the cake layers (around -100)
                           offset: const Offset(0, -100),
                           child: Opacity(
-                            // Logic: Show only if BOTH cream and topping are null. Hides on the first selection.
                             opacity: (selectedCream == null && selectedTopping == null) ? 1.0 : 0.0,
                             child: IgnorePointer(
-                              // Prevent clicks on the hidden text
                               ignoring: selectedCream != null || selectedTopping != null,
                               child: Text(
                                 'Select\nCream & Topping',
@@ -371,11 +380,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                         ),
                       ],
                     ),
-
-                    // Pushes the cake up and the button down
                     const Spacer(),
-
-                    // Submit button
                     ElevatedButton(
                       onPressed: isComplete ? _submitCake : null,
                       style: ElevatedButton.styleFrom(
@@ -395,8 +400,6 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                         ),
                       ),
                     ),
-
-                    // Add some necessary padding from the bottom edge
                     SizedBox(height: 40),
                   ],
                 ),
@@ -404,7 +407,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
 
               SizedBox(width: 20),
 
-              // RIGHT: TOPPING OPTIONS (2x2 Layout)
+              // RIGHT: TOPPING OPTIONS
               Container(
                 width: MediaQuery.of(context).size.width * 0.22,
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -449,7 +452,6 @@ class _CakeGameScreenState extends State<CakeGameScreen>
     );
   }
 
-  // Updated: width changed from 40 to 85, padding and font size adjusted to match _toppingOption
   Widget _creamOption(String value, String label, Color color) {
     bool isSelected = selectedCream == value;
 
@@ -459,8 +461,8 @@ class _CakeGameScreenState extends State<CakeGameScreen>
         creamController.forward(from: 0);
       },
       child: Container(
-        width: 85, // Matched topping width
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8), // Matched topping padding
+        width: 85,
+        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -480,12 +482,12 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                 border: Border.all(color: Colors.grey.shade400, width: 2),
               ),
             ),
-            SizedBox(height: 5), // Adjusted spacing
+            SizedBox(height: 5),
             Text(
               label,
               style: TextStyle(
                 fontFamily: 'Caveat',
-                fontSize: 16, // Adjusted font size
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: isSelected ? Colors.white : Colors.black,
               ),
@@ -496,10 +498,9 @@ class _CakeGameScreenState extends State<CakeGameScreen>
     );
   }
 
-  // Retained _toppingOption, as it already had width: 85
   Widget _toppingOption(String value, String label) {
     bool isSelected = selectedTopping == value;
-    final assetPath = _toppingAssetPaths[value]; // Get the asset path
+    final assetPath = _toppingAssetPaths[value];
 
     return GestureDetector(
       onTap: () {
@@ -524,8 +525,8 @@ class _CakeGameScreenState extends State<CakeGameScreen>
               height: 35,
               alignment: Alignment.center,
               child: assetPath != null
-                  ? Image.asset(assetPath, width: 30, height: 30) // Display the image asset
-                  : Text('?'), // Fallback if path is missing
+                  ? Image.asset(assetPath, width: 30, height: 30)
+                  : Text('?'),
             ),
             Text(
               label,
@@ -542,13 +543,11 @@ class _CakeGameScreenState extends State<CakeGameScreen>
     );
   }
 
-  // Returns Image.asset for the main preview
   Widget _buildToppingPreview(String topping) {
     final assetPath = _toppingAssetPaths[topping];
 
     if (assetPath == null) return const SizedBox.shrink();
 
-    // The topping is reduced in size and slightly offset to sit nicely on the top edge
     return Transform.translate(
       offset: const Offset(0, 30),
       child: Image.asset(

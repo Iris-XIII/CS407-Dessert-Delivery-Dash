@@ -32,23 +32,22 @@ class DessertDeliveryDash extends StatelessWidget {
         '/': (context) => HomeScreen(),
         '/starting': (context) => StartPage(),
         '/profile': (context) => ProfileScreen(),
-        '/ending': (context) => EndingScreen(),
-        '/kitchen': (context) => KitchenScreen(),
+        '/ending': (context) => const EndingScreen(
+          dayNumber: 1,
+          moneyEarned: 0.0,
+          customersServed: 0,
+        ),
+        //'/kitchen': (context) => KitchenScreen(),
         '/customer-reception': (context) => CustomerReceptionScreen(
-          characterAsset: 'Deer.png',
           initialDay: 2,
           initialMoney: 100,
           initialCustomers: 7,
           initialTime: '8:00',
-          initialOrders: const [
-            ['🍞', '🧁'],
-            ['🍞', '🍞', '🍪'],
-            ['🧁'],
-          ],
         ),
         '/recipe': (context) => RecipeScreen(),
         '/settings': (context) => SettingsScreen(),
       },
+
     );
   }
 }

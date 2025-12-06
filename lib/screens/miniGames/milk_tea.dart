@@ -1,14 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; // For kDebugMode
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 import '../../models/recipe.dart';
 import '../../utils/shake_detector.dart';
+import '../../models/game_character.dart';
+import '../../services/audio_manager.dart';
+import '../kitchen_screen.dart';
+
+class MilkTeaMiniGameResult {
+  final String teaBase;
+  final String topping;
+  final String sweetness;
+  final int teaTries;
+
+  const MilkTeaMiniGameResult({
+    required this.teaBase,
+    required this.topping,
+    required this.sweetness,
+    required this.teaTries,
+  });
+}
 
 class MilkTeaGameScreen extends StatefulWidget {
   final MilkTeaRecipe targetRecipe;
+  final int day;
+  final int currCustomer;
+  final int money;
+  final GameCharacter customer;
+  final String? cakeFrosting;
+  final String? cakeTopping;
+  final int cakeTries;
+  final String? teaBase;
+  final String? teaTopping;
+  final int teaTries;
 
   const MilkTeaGameScreen({
     Key? key,
     required this.targetRecipe,
+    required this.day,
+    required this.currCustomer,
+    required this.money,
+    required this.customer,
+    required this.teaTries,
+    required this.cakeTries,
+    this.cakeFrosting,
+    this.cakeTopping,
+    this.teaBase,
+    this.teaTopping
   }) : super(key: key);
 
   @override
@@ -17,6 +56,8 @@ class MilkTeaGameScreen extends StatefulWidget {
 
 class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
     with TickerProviderStateMixin {
+  final AudioManager _audioManager = AudioManager();
+
   // Player selections
   String? selectedTeaBase;
   String? selectedTopping;
@@ -26,6 +67,8 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
   // Shake detector
   late ShakeDetector shakeDetector;
   bool isShaking = false;
+  bool _shakeEnabled = true;
+  bool _hapticEnabled = true;
 
   // Animations
   late AnimationController teaController;
@@ -36,11 +79,20 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
   // Required number of shakes
   final int requiredShakes = 3;
 
+  Future<void> _loadShakeSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _shakeEnabled = prefs.getBool('shakeToMix') ?? true;
+      _hapticEnabled = prefs.getBool('hapticFeedback') ?? true;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadShakeSetting();
+    _playMusic();
 
-    // Initialize animation controllers
     teaController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 400),
@@ -61,12 +113,15 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       duration: Duration(milliseconds: 300),
     );
 
-    // Initialize shake detector
     shakeDetector = ShakeDetector(
       onShake: _onDeviceShaken,
       shakeThreshold: 2.5,
       shakeCooldown: 600,
     );
+  }
+
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Game Pages.mp3');
   }
 
   @override
@@ -79,29 +134,32 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
     super.dispose();
   }
 
-  // Called when device is shaken
+  void _vibrate() {
+    if (_hapticEnabled) {
+      HapticFeedback.mediumImpact();
+    }
+  }
+
   void _onDeviceShaken() {
     if (canShake && shakeCount < requiredShakes) {
+      _vibrate();
       setState(() {
         shakeCount++;
         isShaking = true;
       });
 
-      // Animate shake
       shakeController.forward(from: 0).then((_) {
         setState(() {
           isShaking = false;
         });
       });
 
-      // Stop listening once we have enough shakes
       if (shakeCount >= requiredShakes) {
         shakeDetector.stopListening();
       }
     }
   }
 
-  // Sequential enabling logic
   bool get canSelectTopping => selectedTeaBase != null;
   bool get canSelectSweetness => selectedTopping != null;
   bool get canShake => selectedSweetness != null;
@@ -118,22 +176,22 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       sweetness: selectedSweetness!,
       topping: selectedTopping!,
     );
-
     final isCorrect = widget.targetRecipe.matches(playerRecipe);
 
-    // Navigate to customer reception with result
-    Navigator.pushReplacementNamed(
-      context,
-      '/customer-reception',
-      arguments: isCorrect,
+    final result = MilkTeaMiniGameResult(
+      teaBase: selectedTeaBase!,
+      topping: selectedTopping!,
+      sweetness: selectedSweetness!,
+      teaTries: widget.teaTries + 1,
     );
+
+    Navigator.pop(context, result);
   }
 
   void _handleBackToKitchen() {
     Navigator.pop(context);
   }
 
-  // Tea base colors
   Color _teaToColor(String? tea) {
     switch (tea) {
       case "black":
@@ -249,13 +307,12 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
             children: [
               // LEFT SIDE: Tea Base & Sweetness
               Container(
-                width: MediaQuery.of(context).size.width * 0.22,
+                width: MediaQuery.of(context).size.width * 0.3,
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // TEA BASE SECTION
                       _buildSectionTitle('Tea Base'),
                       SizedBox(height: 6),
                       Wrap(
@@ -270,8 +327,6 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                         ],
                       ),
                       SizedBox(height: 15),
-
-                      // SWEETNESS SECTION
                       _buildSectionTitle('Sweetness'),
                       SizedBox(height: 6),
                       Opacity(
@@ -293,19 +348,15 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                 ),
               ),
 
-              // CENTER: Cup Preview Only
+              // CENTER: Cup Preview
               Expanded(
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Cup Preview
                       _buildCupPreview(),
-
                       SizedBox(height: 20),
-
-                      // Submit button
                       ElevatedButton(
                         onPressed: isComplete ? _submitMilkTea : null,
                         style: ElevatedButton.styleFrom(
@@ -332,15 +383,14 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                 ),
               ),
 
-              // RIGHT SIDE: Toppings + Shake Section
+              // RIGHT SIDE: Toppings + Shake
               Container(
-                width: MediaQuery.of(context).size.width * 0.22,
+                width: MediaQuery.of(context).size.width * 0.35,
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // TOPPING SECTION
                       _buildSectionTitle('Topping'),
                       SizedBox(height: 6),
                       Opacity(
@@ -357,10 +407,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                           ],
                         ),
                       ),
-
                       SizedBox(height: 15),
-
-                      // SHAKE SECTION (moved here!)
                       if (canShake) _buildShakeSection(),
                     ],
                   ),
@@ -397,7 +444,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
         teaController.forward(from: 0);
       },
       child: Container(
-        width: 75,
+        width: 50,
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
           color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
@@ -447,7 +494,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       }
           : null,
       child: Container(
-        width: 75,
+        width: 60,
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
           color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
@@ -491,8 +538,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
           ? () {
         setState(() {
           selectedSweetness = value;
-          // Start shake detector when sweetness is selected
-          if (canShake && shakeCount < requiredShakes) {
+          if (canShake && shakeCount < requiredShakes && _shakeEnabled) {
             shakeDetector.startListening();
           }
         });
@@ -500,7 +546,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       }
           : null,
       child: Container(
-        width: 75,
+        width: 50,
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
           color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
@@ -538,7 +584,6 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
     return AnimatedBuilder(
       animation: shakeController,
       builder: (context, child) {
-        // Shake animation offset
         double shakeOffset = isShaking ? (shakeController.value * 10 * (shakeController.value > 0.5 ? -1 : 1)) : 0;
 
         return Transform.translate(
@@ -546,7 +591,6 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Cup container
               Container(
                 width: 100,
                 height: 150,
@@ -567,7 +611,6 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                 ),
                 child: Column(
                   children: [
-                    // Tea liquid
                     if (selectedTeaBase != null)
                       Expanded(
                         child: Container(
@@ -583,8 +626,6 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                   ],
                 ),
               ),
-
-              // Topping at bottom of cup
               if (selectedTopping != null && selectedTopping != 'none')
                 Positioned(
                   bottom: 8,
@@ -595,8 +636,6 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                     fit: BoxFit.contain,
                   ),
                 ),
-
-              // Placeholder text
               if (selectedTeaBase == null)
                 Text(
                   'Select\nTea Base',
@@ -633,11 +672,13 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
           Icon(
             needsMoreShakes ? Icons.phone_android : Icons.check_circle,
             size: 35,
-            color: needsMoreShakes ? Color(0xFFFF69B4) : Color(0xFF87D68D),
+            color: needsMoreShakes ? Color(0xFFFFB6C1) : Color(0xFF87D68D),
           ),
           SizedBox(height: 8),
           Text(
-            needsMoreShakes ? '📱 Shake Device!' : '✅ Mixed!',
+            needsMoreShakes
+                ? (_shakeEnabled ? '📱 Shake Device!' : '👆 Tap to Mix!')
+                : '✅ Mixed!',
             style: TextStyle(
               fontFamily: 'Caveat',
               fontSize: 22,
@@ -654,31 +695,34 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
               color: Colors.black87,
             ),
           ),
-
-          // DEBUG BUTTON - Only shows in debug mode on simulator
-          if (kDebugMode && needsMoreShakes)
+          if (!_shakeEnabled && needsMoreShakes)
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: ElevatedButton(
-                onPressed: () {
-                  // Manually trigger shake for testing
-                  if (shakeCount < requiredShakes) {
-                    setState(() {
-                      shakeCount++;
-                      isShaking = true;
-                    });
-                    shakeController.forward(from: 0).then((_) {
-                      setState(() {
-                        isShaking = false;
-                      });
-                    });
-
-                    // Stop listening once we have enough shakes
-                    if (shakeCount >= requiredShakes) {
-                      shakeDetector.stopListening();
-                    }
-                  }
-                },
+                onPressed: _simulateShake,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFFB6C1),
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Text(
+                  '🧋 Mix!',
+                  style: TextStyle(
+                    fontFamily: 'Caveat',
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          if (kDebugMode && needsMoreShakes && _shakeEnabled)
+            Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: ElevatedButton(
+                onPressed: _simulateShake,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -700,6 +744,25 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
         ],
       ),
     );
+  }
+
+  void _simulateShake() {
+    if (shakeCount < requiredShakes) {
+      _vibrate();
+      setState(() {
+        shakeCount++;
+        isShaking = true;
+      });
+      shakeController.forward(from: 0).then((_) {
+        setState(() {
+          isShaking = false;
+        });
+      });
+
+      if (shakeCount >= requiredShakes) {
+        shakeDetector.stopListening();
+      }
+    }
   }
 
   Widget _getToppingIcon(String topping) {
@@ -738,7 +801,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       case 'pudding':
         return 'assets/images/pudding.png';
       default:
-        return 'assets/images/boba.png'; // Fallback
+        return 'assets/images/boba.png';
     }
   }
 }

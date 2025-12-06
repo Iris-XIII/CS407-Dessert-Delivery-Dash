@@ -1,48 +1,105 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/audio_manager.dart';
+import 'kitchen_screen.dart';
+import '../data/characters.dart';   // contains kCharacters
+import '../data/days.dart';         // contains kDays
+import '../models/game_character.dart';
+import '../models/day_plan.dart';   // or day_data.dart, as long as it defines DayData
+
+String _buildOrderString(GameCharacter c) {
+  final parts = <String>[];
+
+  if (c.milkTeaOrder != null && c.milkTeaOrder!.isNotEmpty) {
+    parts.add('Milk Tea: ${c.milkTeaOrder}');
+  }
+  if (c.cakeOrder != null && c.cakeOrder!.isNotEmpty) {
+    parts.add('Cake: ${c.cakeOrder}');
+  }
+
+  if (parts.isEmpty) {
+    return 'No order';
+  }
+
+  // Each part on its own line
+  return parts.join('\n');
+}
+
+class KitchenScreenArgs {
+  final int day;
+  final int customer;
+  final int money;
+
+  KitchenScreenArgs({
+    required this.day,
+    required this.customer,
+    required this.money
+  });
+}
 
 class CustomerReceptionScreen extends StatefulWidget {
-  final String characterAsset;
   final int initialDay;
   final int initialMoney;
   final int initialCustomers;
   final String initialTime;
-  final List<List<String>> initialOrders;
+  final int? currCustomer;
+  final bool? correctOrder;
+  final int? deltaMoney;
 
   const CustomerReceptionScreen({
     super.key,
-    required this.characterAsset,
     required this.initialDay,
     required this.initialMoney,
     required this.initialCustomers,
     required this.initialTime,
-    required this.initialOrders,
+    this.currCustomer,
+    this.correctOrder,
+    this.deltaMoney
   });
 
   @override
-  State<CustomerReceptionScreen> createState() => _CustomerReceptionScreenState();
+  State<CustomerReceptionScreen> createState() =>
+      _CustomerReceptionScreenState();
 }
 
 class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
-  late String characterAsset;
+  final AudioManager _audioManager = AudioManager();
+
+  // Core state driven by your day + character data
+  late int currCustomer;
   late int day;
   late int money;
   late int customers;
   late String time;
+
+  // legacy orders list (not really used now, but kept so the class still has it)
   late List<List<String>> orders;
+
+  late List<GameCharacter> todaysCustomers;
+  late List<String> orderStrings; // one string per customer
 
   @override
   void initState() {
     super.initState();
-    characterAsset = widget.characterAsset;
+    currCustomer = 0;
     day = widget.initialDay;
     money = widget.initialMoney;
     time = widget.initialTime;
-    customers = widget.initialCustomers;
-    // make a copy so we can mutate safely
-    orders = widget.initialOrders
-        .map((row) => List<String>.from(row))
+
+    final int dayIndex = (day - 1).clamp(0, kDays.length - 1) as int;
+    final day_plan dayData = kDays[dayIndex];
+
+    todaysCustomers = dayData.characterIds
+        .map((id) => kCharacters[id]!)
         .toList();
+
+    customers = todaysCustomers.length;
+
+    _playMusic();
+  }
+
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Game Pages.mp3');
   }
 
   @override
@@ -78,139 +135,189 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
             bottom: h * .05, // tweak until they sit right at the counter
             child: IgnorePointer(
               child: Image.asset(
-                'assets/images/$characterAsset',
+                'assets/images/${todaysCustomers[currCustomer].sprite}',
                 height: h * .55,
               ),
             ),
           ),
-          // 2️⃣ Counter foreground overlay (ABOVE characters, BELOW UI)
+          // Counter foreground overlay (ABOVE characters, BELOW UI)
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: IgnorePointer(
-              // IgnorePointer so it doesn't block taps on your GestureDetector
               child: Image.asset(
                 'assets/images/Counter.png',
                 fit: BoxFit.fitWidth,
-                //width: w,
               ),
             ),
           ),
           SafeArea(
             child: LayoutBuilder(
               builder: (context, c) {
+                const edgePad =
+                EdgeInsets.symmetric(horizontal: 0, vertical: 12);
 
-                const edgePad = EdgeInsets.symmetric(horizontal: 0, vertical: 12);
-
-                return Stack(children: [
-
-                  Positioned(
-                    left: w * 0.03,
-                    top:  h * 0.80,
-                    width:  w * 0.35,
-                    height: h * 0.30,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => Navigator.pushNamed(context, '/recipe'),
-                      child: const SizedBox.expand(),
-                    ),
-                  ),
-
-                  Positioned(
-                    left: 0,
-                    top: 12,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: w * 0.2,
+                return Stack(
+                  children: [
+                    Positioned(
+                      left: w * 0.03,
+                      top: h * 0.80,
+                      width: w * 0.35,
+                      height: h * 0.30,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/recipe'),
+                        child: const SizedBox.expand(),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Day + Time
-                          Text('Day $day',
+                    ),
+
+                    Positioned(
+                      left: 0,
+                      top: 12,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: w * 0.2,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Day + Time
+                            Text(
+                              'Day $day',
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700, color: Colors.black87)),
-                          const SizedBox(height: 4),
-                          Text('Time: $time',
+                                  ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Time: $time',
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
-                                  ?.copyWith(color: Colors.black87)),
-                          const SizedBox(height: 12),
-                          OrderListPanel()
-                        ],
+                                  ?.copyWith(color: Colors.black87),
+                            ),
+                            const SizedBox(height: 12),
+                            OrderListPanel(order: _buildOrderString(todaysCustomers[currCustomer])),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
-                  Positioned(
-                    right: 6,
-                    top: 12,
-                    child: SizedBox(
-                      width: w * 0.45,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('Customers: $customers',
+                    Positioned(
+                      right: 6,
+                      top: 12,
+                      child: SizedBox(
+                        width: w * 0.45,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Customers: ${customers-currCustomer}',
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w600)),
-                              const SizedBox(width: 16),
-                              Text('Money: $money',
+                                      ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  'Money: $money',
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              PinkIconButton(
-                                icon: Icons.pause,
-                                onPressed: () {
-                                  showPauseDialog(
+                                      ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                PinkIconButton(
+                                  icon: Icons.pause,
+                                  onPressed: () {
+                                    showPauseDialog(
                                       context,
-                                      onQuit: () => Navigator.pushNamed(context, '/starting'),
-                                  );
-                                },
-                              ),
-                              SizedBox(width: 8),
-                              PinkIconButton(
-                                icon: Icons.person,
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/profile');
-                                },
-                              ),
-                              SizedBox(width: 8),
-                              PinkIconButton(
-                                icon: Icons.kitchen_sharp,
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/kitchen');
-                                },
-                              ),
-                              SizedBox(width: 8),
-                              PinkIconButton(
-                                icon: Icons.crop_square_sharp,
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/ending');
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
+                                      onQuit: () => Navigator.pushNamed(
+                                          context, '/starting'),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                PinkIconButton(
+                                  icon: Icons.person,
+                                  onPressed: () {
+                                    Navigator.pushNamed(context, '/profile');
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                PinkIconButton(
+                                  icon: Icons.kitchen_sharp,
+                                  onPressed: () async {
+                                    final result =
+                                    await Navigator.push<KitchenGameResult>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => KitchenScreen(
+                                          day: day,
+                                          currCustomer: currCustomer,
+                                          customer: todaysCustomers[currCustomer],
+                                          money: money,
+                                          cakeFrosting: null,
+                                          cakeTopping: null,
+                                          cakeTries: 0,
+                                          teaBase: null,
+                                          teaTopping: null,
+                                          teaTries: 0,
+                                        ),
+                                      ),
+                                    );
+
+                                    // result comes from _onTrayTap in KitchenScreen
+                                    if (result != null) {
+                                      setState(() {
+                                        // money that KitchenScreen computed (base + price for order)
+                                        money = result.money;
+
+                                        // Move to next customer (you can later gate this on "correctness")
+                                        if (currCustomer < customers - 1) {
+                                          currCustomer++;
+                                        } else {
+                                          // last customer of the day – you can go to ending or next day here
+                                          // Navigator.pushNamed(context, '/ending');
+                                        }
+                                      });
+                                    }
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                PinkIconButton(
+                                  icon: Icons.crop_square_sharp,
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                        context, '/ending');
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ]);
+                  ],
+                );
               },
             ),
           ),
@@ -252,7 +359,8 @@ class PinkIconButton extends StatelessWidget {
 }
 
 class OrderListPanel extends StatelessWidget {
-  const OrderListPanel({super.key});
+  final String order;
+  const OrderListPanel({super.key, required this.order});
 
   @override
   Widget build(BuildContext context) {
@@ -275,37 +383,9 @@ class OrderListPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Order List',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            order,
+            style: const TextStyle(fontSize: 12),
           ),
-          const SizedBox(height: 8),
-          const _OrderRow(items: ['🍞', '🧁']),
-          const _OrderRow(items: ['🍞', '🍞', '🍪']),
-          const _OrderRow(items: ['🧁']),
-        ],
-      ),
-    );
-  }
-}
-
-class _OrderRow extends StatelessWidget {
-  final List<String> items;
-  const _OrderRow({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          ...items.map((e) => Padding(
-            padding: const EdgeInsets.only(right: 6.0),
-            child: Text(e, style: const TextStyle(fontSize: 20)),
-          )),
-          const Spacer(),
-          const Icon(Icons.more_horiz, size: 18),
         ],
       ),
     );
@@ -322,15 +402,16 @@ class PauseDialog extends StatelessWidget {
     const edgePad = EdgeInsets.symmetric(horizontal: 20, vertical: 18);
 
     return Dialog(
-      backgroundColor: Colors.transparent, // so our custom card shows
-      insetPadding: const EdgeInsets.symmetric(horizontal: 200, vertical: 24),
+      backgroundColor: Colors.transparent,
+      insetPadding:
+      const EdgeInsets.symmetric(horizontal: 200, vertical: 24),
       child: Container(
         decoration: BoxDecoration(
-          color: pink.withOpacity(.35),              // ✅ same soft pink
+          color: pink.withOpacity(.35),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.18), // ✅ soft shadow
+              color: Colors.black.withOpacity(0.18),
               blurRadius: 18,
               offset: const Offset(0, 10),
             ),
@@ -357,21 +438,16 @@ class PauseDialog extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-
-            // Buttons row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // Secondary (outlined-ish) button
                 _GhostPinkButton(
                   label: 'Home',
                   onPressed: () {
-                    Navigator.of(context).pop(); // close dialog first
+                    Navigator.of(context).pop();
                     onQuit?.call();
                   },
                 ),
-
-                // Primary pink button
                 _PinkFilledButton(
                   label: 'Resume',
                   onPressed: () => Navigator.of(context).pop(),
@@ -394,13 +470,14 @@ class _PinkFilledButton extends StatelessWidget {
   Widget build(BuildContext context) {
     const pink = Color(0xFFFFB6C1);
     return Material(
-      color: pink, // solid pink like your icon button fill
+      color: pink,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onPressed,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          padding:
+          const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -424,7 +501,7 @@ class _GhostPinkButton extends StatelessWidget {
     const pink = Color(0xFFFFB6C1);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.85),      // light, to contrast primary
+        color: Colors.white.withOpacity(0.85),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: pink.withOpacity(0.9), width: 2),
         boxShadow: [
@@ -439,7 +516,8 @@ class _GhostPinkButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onPressed,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(

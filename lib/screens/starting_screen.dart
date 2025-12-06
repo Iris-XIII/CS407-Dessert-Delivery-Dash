@@ -1,7 +1,25 @@
 import 'package:flutter/material.dart';
+import '../services/audio_manager.dart';
 
-class StartPage extends StatelessWidget {
+class StartPage extends StatefulWidget {
   const StartPage({Key? key}) : super(key: key);
+
+  @override
+  State<StartPage> createState() => _StartPageState();
+}
+
+class _StartPageState extends State<StartPage> {
+  final AudioManager _audioManager = AudioManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _playMusic();
+  }
+
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Starting Page.mp3');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +61,7 @@ class StartPage extends StatelessWidget {
                     context,
                     'Kitchen',
                         () {
-                          Navigator.pushNamed(context, '/kitchen');
+                      Navigator.pushNamed(context, '/kitchen');
                       print('Kitchen button pressed');
                     },
                   ),
@@ -57,7 +75,7 @@ class StartPage extends StatelessWidget {
                     context,
                     'Recipes',
                         () {
-                          Navigator.pushNamed(context, '/recipe');
+                      Navigator.pushNamed(context, '/recipe');
                       print('Recipes button pressed');
                     },
                   ),
@@ -71,7 +89,7 @@ class StartPage extends StatelessWidget {
                     context,
                     'Setting',
                         () {
-                          Navigator.pushNamed(context, '/settings');
+                      Navigator.pushNamed(context, '/settings');
                       print('Setting button pressed');
                     },
                   ),
