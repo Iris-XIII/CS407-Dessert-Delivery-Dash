@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "999430020271",
+    "project_id": "dessert-delivery-dash",
+    "storage_bucket": "dessert-delivery-dash.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:999430020271:android:b0105748f85da30f1dc85a",
+        "android_client_info": {
+          "package_name": "com.example.dessert_delivery_dash"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKh4lUtqQUvjhbSqsntK7k0YbAOnGY6KA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
