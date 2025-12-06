@@ -6,15 +6,17 @@ import 'package:image_picker/image_picker.dart';
 
 // Default profile image options
 const List<String> _gameAvatars = [
-  'assets/images/Deer.png',
+  'assets/images/bear.png',
+  'assets/images/deer.png',
   'assets/images/Fairy.png',
   'assets/images/Female Elf.png',
   'assets/images/Fox.png',
-  'assets/images/Frog.png',
+  'assets/images/frog.png',
   'assets/images/Gnome.png',
   'assets/images/Owl.png',
-  'assets/images/Raccoon.png',
-  'assets/images/Squirel.png',
+  'assets/images/panda.png',
+  'assets/images/raccoon.png',
+  'assets/images/squirel.png',
   'assets/images/Wizard.png'
 ];
 
@@ -421,7 +423,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 1. Name Display (Toggles between Text and TextField)
+                          // Name Display (Toggles between Text and TextField)
                           _isEditing
                               ? SizedBox( // Wrap TextField in SizedBox to control height
                             height: 35,
@@ -444,13 +446,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           const SizedBox(height: 4),
 
-                          // 2. Money (Read-only)
+                          // Money (Read-only)
                           Text(
                             'Money: \$${widget.money.toStringAsFixed(2)}',
                             style: valueStyle.copyWith(color: const Color(0xFF87D68D)),
                           ),
 
-                          // 3. Day (Read-only)
+                          // Day (Read-only)
                           Text(
                             'Day: ${widget.dayNumber}',
                             style: labelStyle,

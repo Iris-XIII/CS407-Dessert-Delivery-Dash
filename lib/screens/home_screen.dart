@@ -25,12 +25,6 @@ class HomeScreen extends StatelessWidget {
               child: InkWell(
                 onTap: () {
                   Navigator.pushNamed(context, '/profile');
-                  /*
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => StartPage()),
-                  );
-                   */
                 },
                   child: Center(
                     child: Text(
