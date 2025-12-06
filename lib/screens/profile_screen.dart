@@ -487,6 +487,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text("Log Out", style: TextStyle(color: Colors.white)),
               ),
+
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/starting');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFB6C1),
+                ),
+                child: const Text("Back to Home")
+              )
+
             ],
           ),
         )
