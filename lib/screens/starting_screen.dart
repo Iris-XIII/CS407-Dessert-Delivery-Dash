@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/audio_manager.dart';
+import '../services/progress_repository.dart';   // <-- ADD THIS
+import '../screens/customer_reception_screen.dart';  // <-- so we can pass arguments
 
 class StartPage extends StatefulWidget {
   const StartPage({Key? key}) : super(key: key);
@@ -11,11 +14,50 @@ class StartPage extends StatefulWidget {
 class _StartPageState extends State<StartPage> {
   final AudioManager _audioManager = AudioManager();
 
+  bool _loading = true;
+  int _initialDay = 1;
+  int _initialMoney = 0;
+
   @override
   void initState() {
     super.initState();
     _playMusic();
+    _loadProgress();   // <-- load progress automatically
   }
+
+  Future<void> _loadProgress() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        // Not logged in – just start at defaults
+        debugPrint('No Firebase user, using default progress');
+        _initialDay = 1;
+        _initialMoney = 0;
+        return;
+      }
+
+      final repo = ProgressRepository();
+      final progress = await repo.loadProgress(user.uid);
+
+      _initialDay = progress.day;
+      _initialMoney = progress.money;
+      debugPrint('Loaded progress: day=$_initialDay money=$_initialMoney');
+    } catch (e, st) {
+      // IMPORTANT: don’t get stuck on errors
+      debugPrint('Error loading progress: $e');
+      debugPrint('$st');
+
+      // Fall back to safe defaults
+      _initialDay = 1;
+      _initialMoney = 0;
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
 
   Future<void> _playMusic() async {
     await _audioManager.playMusic('Starting Page.mp3');
@@ -23,22 +65,28 @@ class _StartPageState extends State<StartPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(
+            child: CircularProgressIndicator(color: Colors.pinkAccent)
+        ),
+      );
+    }
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background image
           Image.asset(
-              'assets/images/StartPage.jpeg',
-              fit: BoxFit.cover,
-              alignment: Alignment(0, 0.4)
+            'assets/images/StartPage.jpeg',
+            fit: BoxFit.cover,
+            alignment: Alignment(0, 0.4),
           ),
 
-          // Buttons positioned over the background
           SafeArea(
             child: Stack(
               children: [
-                // "Play" button - Upper left (reception desk)
+                // PLAY BUTTON
                 Positioned(
                   top: 120,
                   left: 90,
@@ -46,14 +94,23 @@ class _StartPageState extends State<StartPage> {
                     context,
                     'Play',
                         () {
-                      Navigator.pushNamed(context, '/customer-reception');
-                      print('Play button pressed');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CustomerReceptionScreen(
+                            initialDay: _initialDay,
+                            initialMoney: _initialMoney,
+                            initialCustomers: 0,
+                            initialTime: "12:00",
+                          ),
+                        ),
+                      );
                     },
-                    fontSize: 60, // Larger font size for Play button
+                    fontSize: 60,
                   ),
                 ),
 
-                // "Kitchen" button - Upper right (kitchen area)
+                // KITCHEN (optional)
                 Positioned(
                   top: 120,
                   right: 80,
@@ -62,12 +119,11 @@ class _StartPageState extends State<StartPage> {
                     'Kitchen',
                         () {
                       Navigator.pushNamed(context, '/kitchen');
-                      print('Kitchen button pressed');
                     },
                   ),
                 ),
 
-                // "Recipes" button - Lower left (recipe book)
+                // RECIPES
                 Positioned(
                   bottom: 10,
                   left: 80,
@@ -76,12 +132,11 @@ class _StartPageState extends State<StartPage> {
                     'Recipes',
                         () {
                       Navigator.pushNamed(context, '/recipe');
-                      print('Recipes button pressed');
                     },
                   ),
                 ),
 
-                // "Setting" button - Lower right (candy jars)
+                // SETTINGS
                 Positioned(
                   bottom: 10,
                   right: 125,
@@ -90,7 +145,6 @@ class _StartPageState extends State<StartPage> {
                     'Setting',
                         () {
                       Navigator.pushNamed(context, '/settings');
-                      print('Setting button pressed');
                     },
                   ),
                 ),
@@ -105,21 +159,21 @@ class _StartPageState extends State<StartPage> {
   Widget _buildButton(
       BuildContext context,
       String text,
-      VoidCallback onPressed,
-      {double fontSize = 32} // Default font size is 32, can be overridden
-      ) {
+      VoidCallback onPressed, {
+        double fontSize = 32,
+      }) {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         backgroundColor: Colors.transparent,
-        overlayColor: const Color(0x33F2F2F2), // Slight overlay on press
+        overlayColor: const Color(0x33F2F2F2),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontFamily: 'Caveat',
-          fontSize: fontSize, // Use the parameter
+          fontSize: fontSize,
           fontWeight: FontWeight.bold,
           color: Color(0xFF424658),
         ),

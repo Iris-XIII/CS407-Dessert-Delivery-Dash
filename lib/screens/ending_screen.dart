@@ -148,7 +148,7 @@ class _EndingScreenState extends State<EndingScreen> {
                         context,
                         label: 'New Day',
                         onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/customer-reception');
+                          Navigator.pushReplacementNamed(context, '/starting');
                         },
                       ),
                     ],
