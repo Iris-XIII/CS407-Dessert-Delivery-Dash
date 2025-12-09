@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../services/audio_manager.dart';
 
-class EndingScreen extends StatelessWidget {
+class EndingScreen extends StatefulWidget {
   // Placeholder values - will be replaced with actual game data later
   final int dayNumber;
   final double moneyEarned;
@@ -12,6 +13,23 @@ class EndingScreen extends StatelessWidget {
     this.moneyEarned = 0.0,
     this.customersServed = 0,
   }) : super(key: key);
+
+  @override
+  State<EndingScreen> createState() => _EndingScreenState();
+}
+
+class _EndingScreenState extends State<EndingScreen> {
+  final AudioManager _audioManager = AudioManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _playMusic();
+  }
+
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Ending Page.mp3');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +60,7 @@ class EndingScreen extends StatelessWidget {
                 children: [
                   // Title
                   Text(
-                    'Day $dayNumber is over!',
+                    'Day ${widget.dayNumber} is over!',
                     style: const TextStyle(
                       fontSize: 44,
                       fontWeight: FontWeight.bold,
@@ -68,7 +86,7 @@ class EndingScreen extends StatelessWidget {
                           text: 'Money Earned: ',
                         ),
                         TextSpan(
-                          text: '\$${moneyEarned.toStringAsFixed(2)}',
+                          text: '\$${widget.moneyEarned.toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: Color(0xFF87D68D),
                             fontSize: 28,
@@ -93,7 +111,7 @@ class EndingScreen extends StatelessWidget {
                           text: 'Customers Served: ',
                         ),
                         TextSpan(
-                          text: '$customersServed',
+                          text: '${widget.customersServed}',
                           style: const TextStyle(
                             fontSize: 28,
                           ),
@@ -110,7 +128,7 @@ class EndingScreen extends StatelessWidget {
                       // Go to Starting button
                       _buildButton(
                         context,
-                        label: 'Starting',
+                        label: 'Home',
                         onPressed: () {
                           Navigator.pushReplacementNamed(context, '/starting');
                         },

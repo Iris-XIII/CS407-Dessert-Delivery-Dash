@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/game_character.dart';
-
+import '../services/audio_manager.dart';
 import 'customer_reception_screen.dart';
 import '../models/recipe.dart';
 import 'miniGames/cake.dart';
 import 'miniGames/milk_tea.dart';
-import 'customer_reception_screen.dart';
 
 class KitchenGameResult {
   final int day;
@@ -19,8 +18,6 @@ class KitchenGameResult {
   final String? teaBase;
   final String? teaTopping;
   final int teaTries;
-  // final bool correctOrder;
-  // final int deltaMoney;
 
   const KitchenGameResult({
     required this.day,
@@ -33,8 +30,6 @@ class KitchenGameResult {
     this.cakeTopping,
     this.teaBase,
     this.teaTopping,
-    // required this.correctOrder,
-    // required this.deltaMoney,
   });
 }
 
@@ -52,7 +47,6 @@ String _buildOrderString(GameCharacter c) {
     return 'No order';
   }
 
-  // Each part on its own line
   return parts.join('\n');
 }
 
@@ -87,6 +81,7 @@ class KitchenScreen extends StatefulWidget {
 }
 
 class _KitchenScreenState extends State<KitchenScreen> {
+  final AudioManager _audioManager = AudioManager();
   late int _seconds;
   late Timer _timer;
   String? _cakeFrosting;
@@ -103,7 +98,6 @@ class _KitchenScreenState extends State<KitchenScreen> {
       widget.teaBase != null && widget.teaTopping != null;
 
   void _onTrayTap() {
-    // Example: simple correctness + price logic
     final customer = widget.customer;
 
     final bool wantsCake =
@@ -116,7 +110,6 @@ class _KitchenScreenState extends State<KitchenScreen> {
     final bool hasTea =
         widget.teaBase != null && widget.teaTopping != null;
 
-    // Basic correctness rule: they get exactly what they ordered
     final bool correctOrder = (wantsCake == hasCake) && (wantsTea == hasTea);
 
     const int cakePrice = 8;
@@ -131,7 +124,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
     final result = KitchenGameResult(
       day: widget.day,
       currCustomer: widget.currCustomer,
-      money: widget.money + earned,   // NEW TOTAL
+      money: widget.money + earned,
       customer: widget.customer,
       cakeFrosting: widget.cakeFrosting,
       cakeTopping: widget.cakeTopping,
@@ -141,14 +134,13 @@ class _KitchenScreenState extends State<KitchenScreen> {
       teaTries: widget.teaTries,
     );
 
-    // however you're currently navigating back – e.g.:
     Navigator.pop(context, result);
   }
 
   @override
   void initState() {
     super.initState();
-    _seconds = 720; // 12:00 minutes in seconds
+    _seconds = 720;
     _startTimer();
 
     _cakeFrosting = widget.cakeFrosting;
@@ -157,6 +149,12 @@ class _KitchenScreenState extends State<KitchenScreen> {
     _teaTopping = widget.teaTopping;
     _cakeTries = widget.cakeTries;
     _teaTries = widget.teaTries;
+
+    _playMusic();
+  }
+
+  Future<void> _playMusic() async {
+    await _audioManager.playMusic('Game Pages.mp3');
   }
 
   void _startTimer() {
@@ -167,7 +165,6 @@ class _KitchenScreenState extends State<KitchenScreen> {
           _seconds--;
         } else {
           _timer.cancel();
-          // TODO: navigate to ending screen
         }
       });
     });
@@ -185,8 +182,6 @@ class _KitchenScreenState extends State<KitchenScreen> {
     super.dispose();
   }
 
-  // ---- UI ----
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -202,10 +197,8 @@ class _KitchenScreenState extends State<KitchenScreen> {
           SafeArea(
             child: Column(
               children: [
-                // Top bar
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.85),
                     boxShadow: [
@@ -219,7 +212,6 @@ class _KitchenScreenState extends State<KitchenScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Left side - Day and Timer
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -242,8 +234,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(width: 20),
-                      // Middle - current customer + money
+                      const SizedBox(width: 20),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -266,12 +257,11 @@ class _KitchenScreenState extends State<KitchenScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       Expanded(
                         child: OrderListPanel(order: _buildOrderString(widget.customer)),
                       ),
-                      SizedBox(width: 20),
-                      // Right side - nav buttons
+                      const SizedBox(width: 20),
                       Row(
                         children: [
                           _buildIconButton(
@@ -287,39 +277,21 @@ class _KitchenScreenState extends State<KitchenScreen> {
                               Navigator.pushNamed(context, '/recipe');
                             },
                           ),
-                          // const SizedBox(width: 8),
-                          // _buildIconButton(
-                          //   icon: Icons.home,
-                          //   onPressed: () {
-                          //     Navigator.pushNamed(context, '/starting');
-                          //   },
-                          // ),
-                          // const SizedBox(width: 8),
-                          // _buildIconButton(
-                          //   icon: Icons.people,
-                          //   onPressed: () {
-                          //     Navigator.pushNamed(
-                          //         context, '/customer-reception');
-                          //   },
-                          // ),
                         ],
                       ),
                     ],
                   ),
                 ),
-
-                // Kitchen workspace area
                 Expanded(
                   child: Stack(
                     children: [
-                      //  Cake
                       Positioned(
-                        left: 40,
-                        top: -30,
-                        child: GestureDetector(
+                          left: 40,
+                          top: -30,
+                          child: GestureDetector(
                             onTap: _onTrayTap,
                             child: SizedBox(
-                              width: 250, // tweak to match your tray art
+                              width: 250,
                               height: 150,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -331,7 +303,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
                                       height: 85,
                                       fit: BoxFit.contain,
                                     ),
-                                  SizedBox(width: 20),
+                                  const SizedBox(width: 20),
                                   if (_teaBase != null && _teaTopping != null)
                                     Image.asset(
                                       'assets/images/milk_tea_${_teaBase}_${_teaTopping}.png',
@@ -342,9 +314,8 @@ class _KitchenScreenState extends State<KitchenScreen> {
                                 ],
                               ),
                             ),
-                        )
+                          )
                       ),
-                      // Cake
                       Positioned(
                         right: 175,
                         top: 45,
@@ -363,7 +334,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
                                   MaterialPageRoute(
                                     builder: (context) => CakeGameScreen(
                                       targetRecipe: order,
-                                     day: widget.day,
+                                      day: widget.day,
                                       currCustomer: widget.currCustomer,
                                       customer: widget.customer,
                                       money: widget.money,
@@ -398,8 +369,6 @@ class _KitchenScreenState extends State<KitchenScreen> {
                           ],
                         ),
                       ),
-
-                      // Milk tea
                       Positioned(
                         right: 0,
                         top: 10,
@@ -437,7 +406,6 @@ class _KitchenScreenState extends State<KitchenScreen> {
                                     _teaBase = result.teaBase;
                                     _teaTopping = result.topping;
                                     _teaTries = result.teaTries;
-                                    // you can store result.sweetness too if you want
                                   });
                                 }
                               },
@@ -465,8 +433,6 @@ class _KitchenScreenState extends State<KitchenScreen> {
       ),
     );
   }
-
-  // helpers
 
   Widget _buildCakeButton({required VoidCallback onTap}) => GestureDetector(
     onTap: onTap,
@@ -523,6 +489,41 @@ class _KitchenScreenState extends State<KitchenScreen> {
         onPressed: onPressed,
         padding: const EdgeInsets.all(8),
         constraints: const BoxConstraints(),
+      ),
+    );
+  }
+}
+
+// OrderListPanel widget - was missing!
+class OrderListPanel extends StatelessWidget {
+  final String order;
+  const OrderListPanel({super.key, required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    const edgePad = EdgeInsets.symmetric(horizontal: 16, vertical: 12);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFB6C1).withOpacity(.75),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: edgePad,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            order,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
       ),
     );
   }
