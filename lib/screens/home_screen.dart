@@ -2,9 +2,6 @@
 import 'package:flutter/material.dart';
 import 'starting_screen.dart';
 
-import 'package:flutter/material.dart';
-import 'starting_screen.dart';
-
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -27,10 +24,7 @@ class HomeScreen extends StatelessWidget {
               // Round "Enter" button
               child: InkWell(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => StartPage()),
-                  );
+                  Navigator.pushNamed(context, '/profile');
                 },
                   child: Center(
                     child: Text(
