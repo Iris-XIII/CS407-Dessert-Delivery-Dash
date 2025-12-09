@@ -29,9 +29,9 @@ const Map<String, GameCharacter> kCharacters = {
     sprite: "raccoon.png",
     milkTeaOrder: "Brown sugar milk, 100% sweet, boba + pudding",
   ),
-  "frog": GameCharacter(
-    id: "frog",
-    sprite: "frog.png",
+  "Frog": GameCharacter(
+    id: "Frog",
+    sprite: "Frog.png",
     milkTeaOrder: "Matcha latte, 50% sweet, red bean",
   ),
   "rabbit": GameCharacter(
