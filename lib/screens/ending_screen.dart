@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/audio_manager.dart';
 import '../services/progress_repository.dart';
 import '../models/player.dart';
+import 'customer_reception_screen.dart';
 
 class EndingScreen extends StatefulWidget {
   final int dayNumber;
@@ -210,7 +211,17 @@ class _EndingScreenState extends State<EndingScreen> {
                           context,
                           label: 'New Day',
                           onPressed: () {
-                            Navigator.pushReplacementNamed(context, '/starting');
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CustomerReceptionScreen(
+                                  initialDay: widget.dayNumber + 1,
+                                  initialMoney: _currentMoney,
+                                  initialCustomers: 0,
+                                  initialTime: "9:00 AM",
+                                ),
+                              ),
+                            );
                           },
                         ),
                       ],
