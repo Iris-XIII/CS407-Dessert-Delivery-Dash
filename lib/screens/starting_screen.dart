@@ -30,25 +30,34 @@ class _StartPageState extends State<StartPage> {
     try {
       final user = FirebaseAuth.instance.currentUser;
 
+      // If no user is logged in, reset to default values
       if (user == null) {
-        debugPrint('No Firebase user, using default progress');
-        _initialDay = 1;
-        _initialMoney = 0;
+        debugPrint('No Firebase user, resetting to default progress');
+        setState(() {
+          _initialDay = 1;
+          _initialMoney = 0;
+        });
         return;
       }
 
+      // Load saved progress for logged-in user
       final repo = ProgressRepository();
       final progress = await repo.loadProgress(user.uid);
 
-      _initialDay = progress.day;
-      _initialMoney = progress.money;
-      debugPrint('Loaded progress: day=$_initialDay money=$_initialMoney');
+      setState(() {
+        _initialDay = progress.day;
+        _initialMoney = progress.money;
+      });
+      debugPrint('Loaded progress for ${user.uid}: day=$_initialDay money=$_initialMoney');
     } catch (e, st) {
       debugPrint('Error loading progress: $e');
       debugPrint('$st');
 
-      _initialDay = 1;
-      _initialMoney = 0;
+      // On error, reset to default values
+      setState(() {
+        _initialDay = 1;
+        _initialMoney = 0;
+      });
     } finally {
       if (mounted) {
         setState(() => _loading = false);

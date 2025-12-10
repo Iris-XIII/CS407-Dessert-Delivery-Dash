@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/player.dart';
+import '../services/progress_repository.dart';
 
 const List<String> _gameAvatars = [
   'assets/images/Bear.png',
@@ -159,6 +160,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _profilePhotoPath = user?.photoURL ?? 'assets/avatars/default.png';
           _bioController.text = 'A short bio about me.';
         });
+
+        // After successful login, navigate back to starting page to reload progress
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Login successful! Reloading progress...")),
+          );
+
+          // Navigate to starting page and clear navigation stack
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/starting',
+                (route) => false,
+          );
+        }
       }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -416,6 +430,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _profilePhotoPath = null;
                     _usernameController.text = '';
                   });
+
+                  // Navigate back to starting screen and clear navigation stack
+                  // This ensures player data gets reset when the starting screen initializes
+                  if (mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/starting',
+                          (route) => false,
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text("Log Out", style: TextStyle(color: Colors.white)),
