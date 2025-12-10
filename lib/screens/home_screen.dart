@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'starting_screen.dart';
 import '../services/audio_manager.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _playMusic() async {
-    await _audioManager.playMusic('Home Page.mp3');
+    await _audioManager.playMusic('home_page.mp3');
   }
 
   @override
@@ -30,23 +29,19 @@ class _HomeScreenState extends State<HomeScreen> {
           image: DecorationImage(
             image: AssetImage('assets/images/HomePage.jpeg'),
             fit: BoxFit.cover,
-            alignment: Alignment(0, 0.3), //shift the image up slightly
+            alignment: Alignment(0, 0.3),
           ),
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 170), // Adjust to position on door
+              SizedBox(height: 170),
               Padding(
                 padding: EdgeInsets.only(left: 170),
-                // Round "Enter" button
                 child: InkWell(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => StartPage()),
-                    );
+                    Navigator.pushNamed(context, '/profile');
                   },
                   child: Center(
                     child: Text(

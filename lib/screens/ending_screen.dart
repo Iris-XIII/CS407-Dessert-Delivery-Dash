@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/audio_manager.dart';
 
 class EndingScreen extends StatefulWidget {
-  // Placeholder values - will be replaced with actual game data later
   final int dayNumber;
   final double moneyEarned;
   final int customersServed;
@@ -28,7 +27,7 @@ class _EndingScreenState extends State<EndingScreen> {
   }
 
   Future<void> _playMusic() async {
-    await _audioManager.playMusic('Ending Page.mp3');
+    await _audioManager.playMusic('ending_page.mp3');
   }
 
   @override
@@ -36,7 +35,6 @@ class _EndingScreenState extends State<EndingScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background image
           Positioned.fill(
             child: Image.asset(
               'assets/images/ReceptionPage.jpg',
@@ -45,7 +43,6 @@ class _EndingScreenState extends State<EndingScreen> {
             ),
           ),
 
-          // Main content
           Center(
             child: Container(
               width: 500,
@@ -58,7 +55,6 @@ class _EndingScreenState extends State<EndingScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Title
                   Text(
                     'Day ${widget.dayNumber} is over!',
                     style: const TextStyle(
@@ -72,7 +68,6 @@ class _EndingScreenState extends State<EndingScreen> {
                   ),
                   const SizedBox(height: 25),
 
-                  // Money Earned
                   RichText(
                     text: TextSpan(
                       style: const TextStyle(
@@ -97,7 +92,6 @@ class _EndingScreenState extends State<EndingScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Customers Served
                   RichText(
                     text: TextSpan(
                       style: const TextStyle(
@@ -121,11 +115,9 @@ class _EndingScreenState extends State<EndingScreen> {
                   ),
                   const SizedBox(height: 35),
 
-                  // Buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // Go to Starting button
                       _buildButton(
                         context,
                         label: 'Home',
@@ -134,7 +126,6 @@ class _EndingScreenState extends State<EndingScreen> {
                         },
                       ),
 
-                      // Profile button
                       _buildButton(
                         context,
                         label: 'Profile',
@@ -143,12 +134,11 @@ class _EndingScreenState extends State<EndingScreen> {
                         },
                       ),
 
-                      // New Day button
                       _buildButton(
                         context,
                         label: 'New Day',
                         onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/customer-reception');
+                          Navigator.pushReplacementNamed(context, '/starting');
                         },
                       ),
                     ],

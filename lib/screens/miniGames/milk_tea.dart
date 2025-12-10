@@ -121,7 +121,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
   }
 
   Future<void> _playMusic() async {
-    await _audioManager.playMusic('Game Pages.mp3');
+    await _audioManager.playMusic('game_pages.mp3');
   }
 
   @override

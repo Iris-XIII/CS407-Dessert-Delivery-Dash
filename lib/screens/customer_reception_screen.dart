@@ -2,26 +2,127 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/audio_manager.dart';
 import 'kitchen_screen.dart';
-import '../data/characters.dart';   // contains kCharacters
-import '../data/days.dart';         // contains kDays
+import '../data/characters.dart';
+import '../data/days.dart';
 import '../models/game_character.dart';
-import '../models/day_plan.dart';   // or day_data.dart, as long as it defines DayData
+import '../models/day_plan.dart';
+import 'ending_screen.dart';
+import '../services/progress_repository.dart';
+
+
+class EndingScreenArguments {
+  final int day;
+  final int moneyEarned;
+  final int customersServed;
+
+  EndingScreenArguments({
+    required this.day,
+    required this.moneyEarned,
+    required this.customersServed,
+  });
+}
 
 String _buildOrderString(GameCharacter c) {
   final parts = <String>[];
 
-  if (c.milkTeaOrder != null && c.milkTeaOrder!.isNotEmpty) {
-    parts.add('Milk Tea: ${c.milkTeaOrder}');
-  }
-  if (c.cakeOrder != null && c.cakeOrder!.isNotEmpty) {
-    parts.add('Cake: ${c.cakeOrder}');
+  if (c.milkTeaOrder != null) {
+    final m = c.milkTeaOrder!;
+
+    String sweetnessLabel;
+    switch (m.sweetness) {
+      case 'none':
+        sweetnessLabel = '0% sweetness';
+        break;
+      case 'light':
+        sweetnessLabel = '25% sweetness';
+        break;
+      case 'extra':
+        sweetnessLabel = '100% sweetness';
+        break;
+      case 'regular':
+      default:
+        sweetnessLabel = '50% sweetness';
+        break;
+    }
+
+    String baseLabel;
+    switch (m.base) {
+      case 'green':
+        baseLabel = 'Green tea';
+        break;
+      case 'oolong':
+        baseLabel = 'Oolong tea';
+        break;
+      case 'taro':
+        baseLabel = 'Taro milk tea';
+        break;
+      case 'black':
+      default:
+        baseLabel = 'Black tea';
+        break;
+    }
+
+    String toppingLabel;
+    switch (m.topping) {
+      case 'jelly':
+        toppingLabel = 'Jelly';
+        break;
+      case 'pudding':
+        toppingLabel = 'Pudding';
+        break;
+      case 'none':
+        toppingLabel = 'No topping';
+        break;
+      case 'boba':
+      default:
+        toppingLabel = 'Boba';
+        break;
+    }
+
+    parts.add('Milk tea: $baseLabel, $sweetnessLabel, $toppingLabel');
   }
 
-  if (parts.isEmpty) {
-    return 'No order';
+  if (c.cakeOrder != null) {
+    final k = c.cakeOrder!;
+
+    String creamLabel;
+    switch (k.cake) {
+      case 'pink':
+        creamLabel = 'Pink frosting';
+        break;
+      case 'white':
+        creamLabel = 'White frosting';
+        break;
+      case 'blue':
+        creamLabel = 'Blue frosting';
+        break;
+      case 'brown':
+      default:
+        creamLabel = 'Chocolate frosting';
+        break;
+    }
+
+    String toppingLabel;
+    switch (k.topping) {
+      case 'sprinkles':
+        toppingLabel = 'Sprinkles';
+        break;
+      case 'chocolate':
+        toppingLabel = 'Chocolate';
+        break;
+      case 'cherry':
+        toppingLabel = 'Cherry';
+        break;
+      case 'strawberry':
+      default:
+        toppingLabel = 'Strawberry';
+        break;
+    }
+
+    parts.add('Cake: $creamLabel with $toppingLabel');
   }
 
-  // Each part on its own line
+  if (parts.isEmpty) return 'No order';
   return parts.join('\n');
 }
 
@@ -33,7 +134,7 @@ class KitchenScreenArgs {
   KitchenScreenArgs({
     required this.day,
     required this.customer,
-    required this.money
+    required this.money,
   });
 }
 
@@ -54,7 +155,7 @@ class CustomerReceptionScreen extends StatefulWidget {
     required this.initialTime,
     this.currCustomer,
     this.correctOrder,
-    this.deltaMoney
+    this.deltaMoney,
   });
 
   @override
@@ -65,47 +166,76 @@ class CustomerReceptionScreen extends StatefulWidget {
 class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
   final AudioManager _audioManager = AudioManager();
 
-  // Core state driven by your day + character data
   late int currCustomer;
   late int day;
   late int money;
-  late int customers;
+  late int totalCustomers;
+  late int customersServed;
+  late int startingMoney;
   late String time;
 
-  // legacy orders list (not really used now, but kept so the class still has it)
-  late List<List<String>> orders;
-
   late List<GameCharacter> todaysCustomers;
-  late List<String> orderStrings; // one string per customer
 
   @override
   void initState() {
     super.initState();
-    currCustomer = 0;
+
     day = widget.initialDay;
+    startingMoney = widget.initialMoney;
     money = widget.initialMoney;
     time = widget.initialTime;
 
     final int dayIndex = (day - 1).clamp(0, kDays.length - 1) as int;
     final day_plan dayData = kDays[dayIndex];
 
-    todaysCustomers = dayData.characterIds
-        .map((id) => kCharacters[id]!)
-        .toList();
+    todaysCustomers =
+        dayData.characterIds.map((id) => kCharacters[id]!).toList();
 
-    customers = todaysCustomers.length;
+    totalCustomers = todaysCustomers.length;
+    customersServed = 0;
+    currCustomer = 0;
 
     _playMusic();
   }
 
   Future<void> _playMusic() async {
-    await _audioManager.playMusic('Game Pages.mp3');
+    await _audioManager.playMusic('game_pages.mp3');
+  }
+
+  void _goToEnding() {
+    debugPrint('>>> _goToEnding called: day=$day, '
+        'start=$startingMoney, money=$money, '
+        'customersServed=$customersServed');
+
+    final int moneyEarnedToday = money - startingMoney;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      ProgressRepository()
+          .saveProgress(
+        uid: user.uid,
+        day: day + 1,
+        money: money,
+      )
+          .catchError((e, st) {
+        debugPrint('saveProgress failed: $e\n$st');
+      });
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EndingScreen(
+          dayNumber: day,
+          moneyEarned: moneyEarnedToday.toDouble(),
+          customersServed: customersServed,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    const beige = Color(0xFFE6D3B8);
-    const panel = Color(0xFFFFF3D6);
     final size = MediaQuery.of(context).size;
     final w = size.width;
     final h = size.height;
@@ -132,7 +262,7 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
           Positioned(
             left: -70,
             right: 0,
-            bottom: h * .05, // tweak until they sit right at the counter
+            bottom: h * .05,
             child: IgnorePointer(
               child: Image.asset(
                 'assets/images/${todaysCustomers[currCustomer].sprite}',
@@ -140,7 +270,6 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
               ),
             ),
           ),
-          // Counter foreground overlay (ABOVE characters, BELOW UI)
           Positioned(
             left: 0,
             right: 0,
@@ -155,9 +284,6 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
           SafeArea(
             child: LayoutBuilder(
               builder: (context, c) {
-                const edgePad =
-                EdgeInsets.symmetric(horizontal: 0, vertical: 12);
-
                 return Stack(
                   children: [
                     Positioned(
@@ -183,7 +309,6 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Day + Time
                             Text(
                               'Day $day',
                               style: Theme.of(context)
@@ -203,7 +328,10 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
                                   ?.copyWith(color: Colors.black87),
                             ),
                             const SizedBox(height: 12),
-                            OrderListPanel(order: _buildOrderString(todaysCustomers[currCustomer])),
+                            OrderListPanel(
+                              order: _buildOrderString(
+                                  todaysCustomers[currCustomer]),
+                            ),
                           ],
                         ),
                       ),
@@ -221,7 +349,7 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Customers: ${customers-currCustomer}',
+                                  'Customers: ${totalCustomers - customersServed}',
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleLarge
@@ -266,8 +394,7 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
                                 PinkIconButton(
                                   icon: Icons.kitchen_sharp,
                                   onPressed: () async {
-                                    final result =
-                                    await Navigator.push<KitchenGameResult>(
+                                    final result = await Navigator.push<KitchenGameResult>(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => KitchenScreen(
@@ -285,29 +412,28 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
                                       ),
                                     );
 
-                                    // result comes from _onTrayTap in KitchenScreen
-                                    if (result != null) {
-                                      setState(() {
-                                        // money that KitchenScreen computed (base + price for order)
-                                        money = result.money;
+                                    if (result == null) return;
 
-                                        // Move to next customer (you can later gate this on "correctness")
-                                        if (currCustomer < customers - 1) {
-                                          currCustomer++;
-                                        } else {
-                                          // last customer of the day – you can go to ending or next day here
-                                          // Navigator.pushNamed(context, '/ending');
-                                        }
-                                      });
+                                    final int newMoney = result.money;
+                                    final int newCustomersServed = customersServed + 1;
+                                    final bool finishedAll = newCustomersServed >= totalCustomers;
+
+                                    debugPrint('served one: newCustomersServed=$newCustomersServed / '
+                                        '$totalCustomers, finishedAll=$finishedAll');
+
+                                    setState(() {
+                                      money = newMoney;
+                                      customersServed = newCustomersServed;
+
+                                      if (!finishedAll) {
+                                        currCustomer =
+                                            (currCustomer + 1).clamp(0, totalCustomers - 1);
+                                      }
+                                    });
+
+                                    if (finishedAll && mounted) {
+                                      _goToEnding();
                                     }
-                                  },
-                                ),
-                                const SizedBox(width: 8),
-                                PinkIconButton(
-                                  icon: Icons.crop_square_sharp,
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                        context, '/ending');
                                   },
                                 ),
                               ],
@@ -403,8 +529,7 @@ class PauseDialog extends StatelessWidget {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding:
-      const EdgeInsets.symmetric(horizontal: 200, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 200, vertical: 24),
       child: Container(
         decoration: BoxDecoration(
           color: pink.withOpacity(.35),
@@ -476,8 +601,7 @@ class _PinkFilledButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onPressed,
         child: Padding(
-          padding:
-          const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -516,8 +640,7 @@ class _GhostPinkButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onPressed,
         child: Padding(
-          padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(

@@ -84,7 +84,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
   }
 
   Future<void> _playMusic() async {
-    await _audioManager.playMusic('Game Pages.mp3');
+    await _audioManager.playMusic('game_pages.mp3');
   }
 
   @override

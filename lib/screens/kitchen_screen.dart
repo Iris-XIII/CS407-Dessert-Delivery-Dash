@@ -36,11 +36,101 @@ class KitchenGameResult {
 String _buildOrderString(GameCharacter c) {
   final parts = <String>[];
 
-  if (c.milkTeaOrder != null && c.milkTeaOrder!.isNotEmpty) {
-    parts.add('Milk Tea: ${c.milkTeaOrder}');
+  // Milk tea description
+  if (c.milkTeaOrder != null) {
+    final m = c.milkTeaOrder!;
+    String sweetnessLabel;
+    switch (m.sweetness) {
+      case 'none':
+        sweetnessLabel = '0% sweetness';
+        break;
+      case 'light':
+        sweetnessLabel = '25% sweetness';
+        break;
+      case 'extra':
+        sweetnessLabel = '100% sweetness';
+        break;
+      case 'regular':
+      default:
+        sweetnessLabel = '50% sweetness';
+        break;
+    }
+
+    String baseLabel;
+    switch (m.base) {
+      case 'green':
+        baseLabel = 'Green tea';
+        break;
+      case 'oolong':
+        baseLabel = 'Oolong tea';
+        break;
+      case 'taro':
+        baseLabel = 'Taro milk tea';
+        break;
+      case 'black':
+      default:
+        baseLabel = 'Black tea';
+        break;
+    }
+
+    String toppingLabel;
+    switch (m.topping) {
+      case 'jelly':
+        toppingLabel = 'Jelly';
+        break;
+      case 'pudding':
+        toppingLabel = 'Pudding';
+        break;
+      case 'none':
+        toppingLabel = 'No topping';
+        break;
+      case 'boba':
+      default:
+        toppingLabel = 'Boba';
+        break;
+    }
+
+    parts.add('Milk tea: $baseLabel, $sweetnessLabel, $toppingLabel');
   }
-  if (c.cakeOrder != null && c.cakeOrder!.isNotEmpty) {
-    parts.add('Cake: ${c.cakeOrder}');
+
+  // Cake description
+  if (c.cakeOrder != null) {
+    final k = c.cakeOrder!;
+    String creamLabel;
+    switch (k.cake) {
+      case 'pink':
+        creamLabel = 'Pink frosting';
+        break;
+      case 'white':
+        creamLabel = 'White frosting';
+        break;
+      case 'blue':
+        creamLabel = 'Blue frosting';
+        break;
+      case 'brown':
+      default:
+        creamLabel = 'Chocolate frosting';
+        break;
+    }
+
+    String toppingLabel;
+    switch (k.topping) {
+      case 'sprinkles':
+        toppingLabel = 'Sprinkles';
+        break;
+      case 'chocolate':
+        toppingLabel = 'Chocolate';
+        break;
+      case 'cherry':
+        toppingLabel = 'Cherry';
+        break;
+      case 'strawberry':
+      default:
+        toppingLabel = 'Strawberry';
+        break;
+    }
+
+    parts.add('Cake: $creamLabel with $toppingLabel');
   }
 
   if (parts.isEmpty) {
@@ -73,7 +163,7 @@ class KitchenScreen extends StatefulWidget {
     this.cakeFrosting,
     this.cakeTopping,
     this.teaBase,
-    this.teaTopping
+    this.teaTopping,
   });
 
   @override
@@ -84,6 +174,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
   final AudioManager _audioManager = AudioManager();
   late int _seconds;
   late Timer _timer;
+
   String? _cakeFrosting;
   String? _cakeTopping;
   String? _teaBase;
@@ -91,47 +182,66 @@ class _KitchenScreenState extends State<KitchenScreen> {
   int _cakeTries = 0;
   int _teaTries = 0;
 
-  bool get _hasCakeReady =>
-      widget.cakeFrosting != null && widget.cakeTopping != null;
+  bool get _hasCakeReady => _cakeFrosting != null && _cakeTopping != null;
+  bool get _hasMilkTeaReady => _teaBase != null && _teaTopping != null;
 
-  bool get _hasMilkTeaReady =>
-      widget.teaBase != null && widget.teaTopping != null;
+  /// Compare served milk tea (from tray) with what the customer ordered.
+  /// We currently match on base + topping. Sweetness is ignored because we
+  /// don't store it in the tray right now.
+  bool _milkTeaMatches(GameCharacter customer) {
+    final expected = customer.milkTeaOrder;
+    final hasTea = _hasMilkTeaReady;
+
+    // Customer didn't order milk tea → correct only if we didn't serve it.
+    if (expected == null) return !hasTea;
+    if (!hasTea) return false;
+
+    return expected.base == _teaBase && expected.topping == _teaTopping;
+  }
+
+  /// Compare served cake (from tray) with what the customer ordered.
+  bool _cakeMatches(GameCharacter customer) {
+    final expected = customer.cakeOrder;
+    final hasCake = _hasCakeReady;
+
+    // Customer didn't order cake → correct only if we didn't serve it.
+    if (expected == null) return !hasCake;
+    if (!hasCake) return false;
+
+    return expected.cake == _cakeFrosting && expected.topping == _cakeTopping;
+  }
+
+  /// How much money to give for a correct order.
+  int _payoutFor(GameCharacter customer) {
+    int coins = 0;
+    if (customer.milkTeaOrder != null) coins += 6; // or whatever you want
+    if (customer.cakeOrder != null) coins += 8;
+    return coins;
+  }
 
   void _onTrayTap() {
     final customer = widget.customer;
 
-    final bool wantsCake =
-        customer.cakeOrder != null && customer.cakeOrder!.isNotEmpty;
-    final bool wantsTea =
-        customer.milkTeaOrder != null && customer.milkTeaOrder!.isNotEmpty;
-
-    final bool hasCake =
-        widget.cakeFrosting != null && widget.cakeTopping != null;
-    final bool hasTea =
-        widget.teaBase != null && widget.teaTopping != null;
-
-    final bool correctOrder = (wantsCake == hasCake) && (wantsTea == hasTea);
-
-    const int cakePrice = 8;
-    const int teaPrice = 6;
+    final bool teaCorrect = _milkTeaMatches(customer);
+    final bool cakeCorrect = _cakeMatches(customer);
+    final bool orderCorrect = teaCorrect && cakeCorrect;
 
     int earned = 0;
-    if (correctOrder) {
-      if (wantsCake) earned += cakePrice;
-      if (wantsTea) earned += teaPrice;
+    if (orderCorrect) {
+      earned = _payoutFor(customer);
     }
 
     final result = KitchenGameResult(
       day: widget.day,
       currCustomer: widget.currCustomer,
       money: widget.money + earned,
-      customer: widget.customer,
-      cakeFrosting: widget.cakeFrosting,
-      cakeTopping: widget.cakeTopping,
-      cakeTries: widget.cakeTries,
-      teaBase: widget.teaBase,
-      teaTopping: widget.teaTopping,
-      teaTries: widget.teaTries,
+      customer: customer,
+      cakeFrosting: _cakeFrosting,
+      cakeTopping: _cakeTopping,
+      cakeTries: _cakeTries,
+      teaBase: _teaBase,
+      teaTopping: _teaTopping,
+      teaTries: _teaTries,
     );
 
     Navigator.pop(context, result);
@@ -154,7 +264,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
   }
 
   Future<void> _playMusic() async {
-    await _audioManager.playMusic('Game Pages.mp3');
+    await _audioManager.playMusic('game_pages.mp3');
   }
 
   void _startTimer() {
@@ -198,7 +308,8 @@ class _KitchenScreenState extends State<KitchenScreen> {
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.85),
                     boxShadow: [
@@ -259,7 +370,9 @@ class _KitchenScreenState extends State<KitchenScreen> {
                       ),
                       const SizedBox(width: 20),
                       Expanded(
-                        child: OrderListPanel(order: _buildOrderString(widget.customer)),
+                        child: OrderListPanel(
+                          order: _buildOrderString(widget.customer),
+                        ),
                       ),
                       const SizedBox(width: 20),
                       Row(
@@ -286,35 +399,36 @@ class _KitchenScreenState extends State<KitchenScreen> {
                   child: Stack(
                     children: [
                       Positioned(
-                          left: 40,
-                          top: -30,
-                          child: GestureDetector(
-                            onTap: _onTrayTap,
-                            child: SizedBox(
-                              width: 250,
-                              height: 150,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  if (_cakeFrosting != null && _cakeTopping != null)
-                                    Image.asset(
-                                      'assets/images/cake_${_cakeFrosting}_${_cakeTopping}.png',
-                                      width: 85,
-                                      height: 85,
-                                      fit: BoxFit.contain,
-                                    ),
-                                  const SizedBox(width: 20),
-                                  if (_teaBase != null && _teaTopping != null)
-                                    Image.asset(
-                                      'assets/images/milk_tea_${_teaBase}_${_teaTopping}.png',
-                                      width: 75,
-                                      height: 75,
-                                      fit: BoxFit.contain,
-                                    ),
-                                ],
-                              ),
+                        left: 40,
+                        top: -30,
+                        child: GestureDetector(
+                          onTap: _onTrayTap,
+                          child: SizedBox(
+                            width: 250,
+                            height: 150,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (_cakeFrosting != null &&
+                                    _cakeTopping != null)
+                                  Image.asset(
+                                    'assets/images/cake_${_cakeFrosting}_${_cakeTopping}.png',
+                                    width: 85,
+                                    height: 85,
+                                    fit: BoxFit.contain,
+                                  ),
+                                const SizedBox(width: 20),
+                                if (_teaBase != null && _teaTopping != null)
+                                  Image.asset(
+                                    'assets/images/milk_tea_${_teaBase}_${_teaTopping}.png',
+                                    width: 75,
+                                    height: 75,
+                                    fit: BoxFit.contain,
+                                  ),
+                              ],
                             ),
-                          )
+                          ),
+                        ),
                       ),
                       Positioned(
                         right: 175,
@@ -325,11 +439,15 @@ class _KitchenScreenState extends State<KitchenScreen> {
                           children: [
                             _buildCakeButton(
                               onTap: () async {
+                                // TODO: in the future, you can derive this
+                                // from widget.customer.cakeOrder instead of
+                                // hardcoding.
                                 final order = CakeRecipe(
                                   creamColor: 'pink',
                                   topping: 'strawberry',
                                 );
-                                final result = await Navigator.push<CakeMiniGameResult>(
+                                final result =
+                                await Navigator.push<CakeMiniGameResult>(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => CakeGameScreen(
@@ -338,12 +456,12 @@ class _KitchenScreenState extends State<KitchenScreen> {
                                       currCustomer: widget.currCustomer,
                                       customer: widget.customer,
                                       money: widget.money,
-                                      cakeFrosting: widget.cakeFrosting,
-                                      cakeTopping: widget.cakeTopping,
-                                      teaBase: widget.teaBase,
-                                      teaTopping: widget.teaTopping,
-                                      teaTries: widget.teaTries,
-                                      cakeTries: widget.cakeTries,
+                                      cakeFrosting: _cakeFrosting,
+                                      cakeTopping: _cakeTopping,
+                                      teaBase: _teaBase,
+                                      teaTopping: _teaTopping,
+                                      teaTries: _teaTries,
+                                      cakeTries: _cakeTries,
                                     ),
                                   ),
                                 );
@@ -378,27 +496,29 @@ class _KitchenScreenState extends State<KitchenScreen> {
                           children: [
                             _buildMilkTeaButton(
                               onTap: () async {
+                                // TODO: in the future, derive from customer.milkTeaOrder
                                 final order = MilkTeaRecipe(
                                   teaBase: 'taro',
                                   sweetness: 'regular',
                                   topping: 'boba',
                                 );
-                                final result = await Navigator.push<MilkTeaMiniGameResult>(
+                                final result =
+                                await Navigator.push<MilkTeaMiniGameResult>(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        MilkTeaGameScreen(
-                                          targetRecipe: order,
-                                          day: widget.day,
-                                          currCustomer: widget.currCustomer,
-                                          customer: widget.customer,
-                                          money: widget.money,
-                                          cakeFrosting: widget.cakeFrosting,
-                                          cakeTopping: widget.cakeTopping,
-                                          teaBase: widget.teaBase,
-                                          teaTopping: widget.teaTopping,
-                                          teaTries: widget.teaTries,
-                                          cakeTries: widget.cakeTries,),
+                                    builder: (context) => MilkTeaGameScreen(
+                                      targetRecipe: order,
+                                      day: widget.day,
+                                      currCustomer: widget.currCustomer,
+                                      customer: widget.customer,
+                                      money: widget.money,
+                                      cakeFrosting: _cakeFrosting,
+                                      cakeTopping: _cakeTopping,
+                                      teaBase: _teaBase,
+                                      teaTopping: _teaTopping,
+                                      teaTries: _teaTries,
+                                      cakeTries: _cakeTries,
+                                    ),
                                   ),
                                 );
                                 if (result != null) {
@@ -494,7 +614,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
   }
 }
 
-// OrderListPanel widget - was missing!
+// OrderListPanel widget
 class OrderListPanel extends StatelessWidget {
   final String order;
   const OrderListPanel({super.key, required this.order});
