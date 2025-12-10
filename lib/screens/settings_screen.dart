@@ -399,41 +399,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: Color(0xFFCFA6AF),
           ),
         ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Dessert Delivery Dash',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Caveat',
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'Dessert Delivery Dash',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Caveat',
+                ),
               ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Developed by:',
-              style: TextStyle(
-                fontSize: 20,
-                fontFamily: 'Caveat',
-                fontWeight: FontWeight.bold,
+              SizedBox(height: 8),
+              Text(
+                'Developed by:',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: 'Caveat',
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            Text(
-              '• Iris Xu\n• Rae Dong\n• Maria Shackett\n• Ben Stroeher',
-              style: TextStyle(fontSize: 16, fontFamily: 'Caveat'),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'CS 407 - Fall 2025',
-              style: TextStyle(
-                fontSize: 14,
-                fontFamily: 'Caveat',
-                fontWeight: FontWeight.bold,
+              Text(
+                '• Iris Xu\n• Rae Dong\n• Maria Shackett\n• Ben Stroeher',
+                style: TextStyle(fontSize: 16, fontFamily: 'Caveat'),
               ),
-            ),
-          ],
+              SizedBox(height: 8),
+              Text(
+                'CS 407 - Fall 2025',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontFamily: 'Caveat',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
