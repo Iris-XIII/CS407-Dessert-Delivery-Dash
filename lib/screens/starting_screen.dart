@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/audio_manager.dart';
 import '../services/progress_repository.dart';
 import '../screens/customer_reception_screen.dart';
+import '../models/player.dart';
 
 class StartPage extends StatefulWidget {
   const StartPage({Key? key}) : super(key: key);
@@ -69,6 +70,9 @@ class _StartPageState extends State<StartPage> {
       );
     }
 
+    // Check if user is logged in
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -97,7 +101,7 @@ class _StartPageState extends State<StartPage> {
                             initialDay: _initialDay,
                             initialMoney: _initialMoney,
                             initialCustomers: 0,
-                            initialTime: "12:00",
+                            initialTime: "09:00 AM",
                           ),
                         ),
                       );
@@ -106,15 +110,24 @@ class _StartPageState extends State<StartPage> {
                   ),
                 ),
 
-                // KITCHEN
+                // PROFILE BUTTON (was Kitchen)
                 Positioned(
                   top: 120,
                   right: 80,
                   child: _buildButton(
                     context,
-                    'Kitchen',
+                    'Profile',
                         () {
-                      Navigator.pushNamed(context, '/kitchen');
+                      final player = Player.fromGameState(
+                        day: _initialDay,
+                        money: _initialMoney,
+                        userId: user?.uid,
+                      );
+                      Navigator.pushNamed(
+                        context,
+                        '/profile',
+                        arguments: player,
+                      );
                     },
                   ),
                 ),
@@ -127,7 +140,16 @@ class _StartPageState extends State<StartPage> {
                     context,
                     'Recipes',
                         () {
-                      Navigator.pushNamed(context, '/recipe');
+                      final player = Player.fromGameState(
+                        day: _initialDay,
+                        money: _initialMoney,
+                        userId: user?.uid,
+                      );
+                      Navigator.pushNamed(
+                        context,
+                        '/recipe',
+                        arguments: player,
+                      );
                     },
                   ),
                 ),

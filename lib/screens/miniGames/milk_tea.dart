@@ -6,8 +6,10 @@ import '../../models/recipe.dart';
 import '../../utils/shake_detector.dart';
 import '../../models/game_character.dart';
 import '../../services/audio_manager.dart';
-import '../kitchen_screen.dart';
 
+// ============================================================================
+// MILK TEA MINI-GAME RESULT
+// ============================================================================
 class MilkTeaMiniGameResult {
   final String teaBase;
   final String topping;
@@ -22,6 +24,9 @@ class MilkTeaMiniGameResult {
   });
 }
 
+// ============================================================================
+// MILK TEA GAME SCREEN
+// ============================================================================
 class MilkTeaGameScreen extends StatefulWidget {
   final MilkTeaRecipe targetRecipe;
   final int day;
@@ -47,7 +52,7 @@ class MilkTeaGameScreen extends StatefulWidget {
     this.cakeFrosting,
     this.cakeTopping,
     this.teaBase,
-    this.teaTopping
+    this.teaTopping,
   }) : super(key: key);
 
   @override
@@ -95,22 +100,22 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
 
     teaController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 400),
     );
 
     toppingController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 400),
     );
 
     sweetnessController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 400),
     );
 
     shakeController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
     );
 
     shakeDetector = ShakeDetector(
@@ -163,20 +168,14 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
   bool get canSelectTopping => selectedTeaBase != null;
   bool get canSelectSweetness => selectedTopping != null;
   bool get canShake => selectedSweetness != null;
-  bool get isComplete => selectedTeaBase != null &&
-      selectedTopping != null &&
-      selectedSweetness != null &&
-      shakeCount >= requiredShakes;
+  bool get isComplete =>
+      selectedTeaBase != null &&
+          selectedTopping != null &&
+          selectedSweetness != null &&
+          shakeCount >= requiredShakes;
 
   void _submitMilkTea() {
     if (!isComplete) return;
-
-    final playerRecipe = MilkTeaRecipe(
-      teaBase: selectedTeaBase!,
-      sweetness: selectedSweetness!,
-      topping: selectedTopping!,
-    );
-    final isCorrect = widget.targetRecipe.matches(playerRecipe);
 
     final result = MilkTeaMiniGameResult(
       teaBase: selectedTeaBase!,
@@ -195,13 +194,13 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
   Color _teaToColor(String? tea) {
     switch (tea) {
       case "black":
-        return Color(0xFF4A2511);
+        return const Color(0xFF4A2511);
       case "green":
-        return Color(0xFF98D8AA);
+        return const Color(0xFF98D8AA);
       case "oolong":
-        return Color(0xFFC68B59);
+        return const Color(0xFFC68B59);
       case "taro":
-        return Color(0xFFB19CD9);
+        return const Color(0xFFB19CD9);
       default:
         return Colors.transparent;
     }
@@ -214,10 +213,10 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Color(0xFFFACAE7), width: 3),
+            side: const BorderSide(color: Color(0xFFFACAE7), width: 3),
           ),
-          backgroundColor: Color(0xFFFFE5EC),
-          title: Text(
+          backgroundColor: const Color(0xFFFFE5EC),
+          title: const Text(
             'Current Order',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -231,16 +230,16 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: EdgeInsets.all(15),
+                padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  color: Color(0xFFFFE3DC),
+                  color: const Color(0xFFFFE3DC),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Color(0xFFFFB6C1), width: 2),
+                  border: Border.all(color: const Color(0xFFFFB6C1), width: 2),
                 ),
                 child: Text(
                   widget.targetRecipe.getFullOrderDescription(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Caveat',
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -248,10 +247,10 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                   ),
                 ),
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(
+                child: const Text(
                   'Got it!',
                   style: TextStyle(
                     fontFamily: 'Caveat',
@@ -276,11 +275,13 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Make Milk Tea',
-              style: TextStyle(fontFamily: 'Caveat', fontSize: 28)),
-          backgroundColor: Color(0xFFFFB6C1),
+          title: const Text(
+            'Make Milk Tea',
+            style: TextStyle(fontFamily: 'Caveat', fontSize: 28),
+          ),
+          backgroundColor: const Color(0xFFFFB6C1),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: _handleBackToKitchen,
           ),
           actions: [
@@ -288,13 +289,13 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
               padding: const EdgeInsets.only(right: 15.0),
               child: GestureDetector(
                 onTap: _showOrderModal,
-                child: Icon(Icons.receipt_long, size: 28, color: Colors.white),
+                child: const Icon(Icons.receipt_long, size: 28, color: Colors.white),
               ),
             ),
           ],
         ),
         body: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -314,21 +315,21 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildSectionTitle('Tea Base'),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       Wrap(
                         alignment: WrapAlignment.center,
                         spacing: 6.0,
                         runSpacing: 6.0,
                         children: [
-                          _teaOption('black', 'Black', Color(0xFF4A2511)),
-                          _teaOption('green', 'Green', Color(0xFF98D8AA)),
-                          _teaOption('oolong', 'Oolong', Color(0xFFC68B59)),
-                          _teaOption('taro', 'Taro', Color(0xFFB19CD9)),
+                          _teaOption('black', 'Black', const Color(0xFF4A2511)),
+                          _teaOption('green', 'Green', const Color(0xFF98D8AA)),
+                          _teaOption('oolong', 'Oolong', const Color(0xFFC68B59)),
+                          _teaOption('taro', 'Taro', const Color(0xFFB19CD9)),
                         ],
                       ),
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
                       _buildSectionTitle('Sweetness'),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       Opacity(
                         opacity: canSelectSweetness ? 1.0 : 0.4,
                         child: Wrap(
@@ -356,19 +357,21 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildCupPreview(),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: isComplete ? _submitMilkTea : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
-                          isComplete ? Color(0xFF87D68D) : Colors.grey,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 10),
+                          isComplete ? const Color(0xFF87D68D) : Colors.grey,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 10,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
-                        child: Text(
+                        child: const Text(
                           'Serve Milk Tea!',
                           style: TextStyle(
                             fontFamily: 'Caveat',
@@ -392,7 +395,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildSectionTitle('Topping'),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       Opacity(
                         opacity: canSelectTopping ? 1.0 : 0.4,
                         child: Wrap(
@@ -407,7 +410,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                           ],
                         ),
                       ),
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
                       if (canShake) _buildShakeSection(),
                     ],
                   ),
@@ -425,7 +428,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       padding: const EdgeInsets.only(top: 4.0, bottom: 3.0),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'Caveat',
           fontSize: 22,
           fontWeight: FontWeight.bold,
@@ -445,12 +448,12 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
       },
       child: Container(
         width: 50,
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
+          color: isSelected ? const Color(0xFFFFB6C1) : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? Color(0xFFFF69B4) : Color(0xFFFFB6C1),
+            color: isSelected ? const Color(0xFFFF69B4) : const Color(0xFFFFB6C1),
             width: isSelected ? 2.5 : 2,
           ),
         ),
@@ -466,7 +469,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                 border: Border.all(color: Colors.grey.shade400, width: 1.5),
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
@@ -495,12 +498,12 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
           : null,
       child: Container(
         width: 60,
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
+          color: isSelected ? const Color(0xFFFFB6C1) : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? Color(0xFFFF69B4) : Color(0xFFFFB6C1),
+            color: isSelected ? const Color(0xFFFF69B4) : const Color(0xFFFFB6C1),
             width: isSelected ? 2.5 : 2,
           ),
         ),
@@ -513,7 +516,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
               alignment: Alignment.center,
               child: _getToppingIcon(value),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
@@ -547,12 +550,12 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
           : null,
       child: Container(
         width: 50,
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
+          color: isSelected ? const Color(0xFFFFB6C1) : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? Color(0xFFFF69B4) : Color(0xFFFFB6C1),
+            color: isSelected ? const Color(0xFFFF69B4) : const Color(0xFFFFB6C1),
             width: isSelected ? 2.5 : 2,
           ),
         ),
@@ -562,9 +565,9 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
             Icon(
               Icons.water_drop,
               size: 26,
-              color: isSelected ? Colors.white : Color(0xFF87D68D),
+              color: isSelected ? Colors.white : const Color(0xFF87D68D),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
@@ -584,7 +587,9 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
     return AnimatedBuilder(
       animation: shakeController,
       builder: (context, child) {
-        double shakeOffset = isShaking ? (shakeController.value * 10 * (shakeController.value > 0.5 ? -1 : 1)) : 0;
+        double shakeOffset = isShaking
+            ? (shakeController.value * 10 * (shakeController.value > 0.5 ? -1 : 1))
+            : 0;
 
         return Transform.translate(
           offset: Offset(shakeOffset, 0),
@@ -596,16 +601,16 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                 height: 150,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(
+                  borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(15),
                     bottomRight: Radius.circular(15),
                   ),
-                  border: Border.all(color: Color(0xFFFFB6C1), width: 3),
+                  border: Border.all(color: const Color(0xFFFFB6C1), width: 3),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0xFFFFB6C1).withOpacity(0.3),
+                      color: const Color(0xFFFFB6C1).withOpacity(0.3),
                       blurRadius: 10,
-                      offset: Offset(0, 5),
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
@@ -616,7 +621,7 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                         child: Container(
                           decoration: BoxDecoration(
                             color: _teaToColor(selectedTeaBase),
-                            borderRadius: BorderRadius.only(
+                            borderRadius: const BorderRadius.only(
                               bottomLeft: Radius.circular(12),
                               bottomRight: Radius.circular(12),
                             ),
@@ -657,12 +662,14 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
     bool needsMoreShakes = shakeCount < requiredShakes;
 
     return Container(
-      padding: EdgeInsets.all(15),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: needsMoreShakes ? Color(0xFFFFE3DC) : Color(0xFF87D68D).withOpacity(0.2),
+        color: needsMoreShakes
+            ? const Color(0xFFFFE3DC)
+            : const Color(0xFF87D68D).withOpacity(0.2),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: needsMoreShakes ? Color(0xFFFFB6C1) : Color(0xFF87D68D),
+          color: needsMoreShakes ? const Color(0xFFFFB6C1) : const Color(0xFF87D68D),
           width: 2,
         ),
       ),
@@ -672,24 +679,24 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
           Icon(
             needsMoreShakes ? Icons.phone_android : Icons.check_circle,
             size: 35,
-            color: needsMoreShakes ? Color(0xFFFFB6C1) : Color(0xFF87D68D),
+            color: needsMoreShakes ? const Color(0xFFFFB6C1) : const Color(0xFF87D68D),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             needsMoreShakes
                 ? (_shakeEnabled ? '📱 Shake Device!' : '👆 Tap to Mix!')
                 : '✅ Mixed!',
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Caveat',
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Color(0xFF8B6F8F),
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             'Shakes: $shakeCount/$requiredShakes',
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Caveat',
               fontSize: 18,
               color: Colors.black87,
@@ -701,13 +708,13 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
               child: ElevatedButton(
                 onPressed: _simulateShake,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFFB6C1),
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                  backgroundColor: const Color(0xFFFFB6C1),
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   '🧋 Mix!',
                   style: TextStyle(
                     fontFamily: 'Caveat',
@@ -725,12 +732,12 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
                 onPressed: _simulateShake,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   '🧪 Test Shake',
                   style: TextStyle(
                     fontFamily: 'Caveat',
@@ -779,9 +786,9 @@ class _MilkTeaGameScreenState extends State<MilkTeaGameScreen>
         imagePath = 'assets/images/pudding.png';
         break;
       case 'none':
-        return Icon(Icons.close, size: 26, color: Colors.grey);
+        return const Icon(Icons.close, size: 26, color: Colors.grey);
       default:
-        return Icon(Icons.help, size: 26, color: Colors.grey);
+        return const Icon(Icons.help, size: 26, color: Colors.grey);
     }
 
     return Image.asset(

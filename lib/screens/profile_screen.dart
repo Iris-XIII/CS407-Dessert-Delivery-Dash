@@ -1,10 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import '../models/player.dart';
 
-// Default profile image options
 const List<String> _gameAvatars = [
   'assets/images/Bear.png',
   'assets/images/Deer.png',
@@ -21,14 +20,11 @@ const List<String> _gameAvatars = [
 ];
 
 class ProfileScreen extends StatefulWidget {
-  // GAME STATE PROPERTIES
-  final double money;
-  final int dayNumber;
+  final Player player;
 
   const ProfileScreen({
     Key? key,
-    this.money = 0.0, // Default for testing; should be passed by caller
-    this.dayNumber = 1, // Default for testing; should be passed by caller
+    required this.player,
   }) : super(key: key);
 
   @override
@@ -42,7 +38,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _emailFocusNode = FocusNode();
 
-  // State variables for detailed profile
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   bool _isEditing = false;
@@ -54,7 +49,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Load initial user data when the screen starts
     final user = _auth.currentUser;
     if (user != null) {
       _usernameController.text = user.displayName ?? 'New User';
@@ -73,7 +67,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  // Image Picker Logic
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -95,7 +88,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return SafeArea(
           child: Wrap(
             children: <Widget>[
-              // Option 1: Import from Phone Storage
               ListTile(
                 leading: const Icon(Icons.photo_library),
                 title: const Text('Import from Gallery'),
@@ -105,7 +97,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               const Divider(),
-              // Option 2: Select Game Assets
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text('Choose a Game Avatar:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -120,7 +111,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     return GestureDetector(
                       onTap: () {
                         setState(() {
-                          // Update path with the selected game asset path
                           _profilePhotoPath = assetPath;
                         });
                         Navigator.of(context).pop();
@@ -166,25 +156,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (user != null) {
         setState(() {
           _usernameController.text = user?.displayName ?? 'New User';
-          // Reset to new user's photoURL or the default asset
           _profilePhotoPath = user?.photoURL ?? 'assets/avatars/default.png';
           _bioController.text = 'A short bio about me.';
         });
       }
-      /*
-      if (isLogin) {
-        await _auth.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-      } else {
-        final userCredential = await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        await userCredential.user?.updateDisplayName(_emailController.text.split('@').first);
-      }
-       */
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "Authentication failed")),
@@ -209,7 +184,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _isEditing = false;
         });
-
       } on Exception catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to update profile: $e")),
@@ -292,25 +266,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildEditField({
-    required TextEditingController controller,
-    required String label,
-    int maxLines = 1,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
-        maxLines: maxLines,
-      ),
-    );
-  }
-
-  // Helper to determine the correct ImageProvider
   ImageProvider _getAvatarProvider(String? path) {
     if (path == null) {
       return const AssetImage('assets/images/profile_avatar.png');
@@ -326,27 +281,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return AssetImage(path);
   }
 
-  // Helper to build the avatar with the edit overlay when in editing mode
   Widget _buildEditableAvatar({required bool isEditing, required String? photoPath, required VoidCallback onTap}) {
     const double avatarRadius = 40;
 
-    // Helper to determine the correct ImageProvider (copied from previous code)
-    ImageProvider _getAvatarProvider(String? path) {
-      if (path == null) {
-        return const AssetImage('assets/avatars/default.png');
-      }
-      if (path.startsWith('http')) {
-        return NetworkImage(path);
-      }
-      // Requires dart:io: import 'dart:io';
-      if (path.startsWith('/data') || path.startsWith('file://')) {
-        return FileImage(File(path));
-      }
-      return AssetImage(path);
-    }
-
     return GestureDetector(
-      onTap: isEditing ? onTap : null, // Only tap to edit if in editing mode
+      onTap: isEditing ? onTap : null,
       child: Stack(
         children: [
           CircleAvatar(
@@ -358,7 +297,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 : null,
           ),
 
-          // 💡 Pencil Icon Overlay (Only visible in editing mode)
           if (isEditing)
             Positioned(
               bottom: 0,
@@ -366,7 +304,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFFFB6C1), // Pink background for the icon
+                  color: Color(0xFFFFB6C1),
                   shape: BoxShape.circle,
                   border: Border.fromBorderSide(BorderSide(color: Colors.white, width: 2)),
                 ),
@@ -393,7 +331,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // HORIZONTAL PROFILE HEADER CONTAINER (Used for both view and edit)
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -410,7 +347,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // LEFT: Editable Profile Image with Overlay
                     _buildEditableAvatar(
                       isEditing: _isEditing,
                       photoPath: _profilePhotoPath,
@@ -418,14 +354,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(width: 20),
 
-                    // RIGHT: Name, Money, Day Stack
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Name Display (Toggles between Text and TextField)
                           _isEditing
-                              ? SizedBox( // Wrap TextField in SizedBox to control height
+                              ? SizedBox(
                             height: 35,
                             child: TextField(
                               controller: _usernameController,
@@ -435,7 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 border: const UnderlineInputBorder(),
                                 isDense: true,
                                 contentPadding: EdgeInsets.zero,
-                                errorStyle: const TextStyle(height: 0), // hide error space
+                                errorStyle: const TextStyle(height: 0),
                               ),
                             ),
                           )
@@ -446,15 +380,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           const SizedBox(height: 4),
 
-                          // Money (Read-only)
                           Text(
-                            'Money: \$${widget.money.toStringAsFixed(2)}',
+                            'Money: \$${widget.player.money}',
                             style: valueStyle.copyWith(color: const Color(0xFF87D68D)),
                           ),
 
-                          // Day (Read-only)
                           Text(
-                            'Day: ${widget.dayNumber}',
+                            'Day: ${widget.player.day} • Level: ${widget.player.level}',
                             style: labelStyle,
                           ),
                         ],
@@ -466,7 +398,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 30),
 
-              // Log Out / Save Button (Conditional Display)
               _isEditing
                   ? isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -491,15 +422,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
 
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/starting');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFB6C1),
-                ),
-                child: const Text("Back to Home")
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/starting');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFB6C1),
+                  ),
+                  child: const Text("Back to Home")
               )
-
             ],
           ),
         )
@@ -514,7 +444,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Profile'),
         backgroundColor: const Color(0xFFFFB6C1),
-        // Add the edit/save button to the AppBar actions
         actions: user != null
             ? [
           IconButton(

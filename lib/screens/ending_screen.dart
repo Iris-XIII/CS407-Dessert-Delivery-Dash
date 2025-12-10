@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/audio_manager.dart';
+import '../services/progress_repository.dart';
+import '../models/player.dart';
 
 class EndingScreen extends StatefulWidget {
   final int dayNumber;
@@ -20,18 +23,56 @@ class EndingScreen extends StatefulWidget {
 class _EndingScreenState extends State<EndingScreen> {
   final AudioManager _audioManager = AudioManager();
 
+  int _currentMoney = 0;
+  bool _loading = true;
+
   @override
   void initState() {
     super.initState();
     _playMusic();
+    _loadCurrentProgress();
+  }
+
+  Future<void> _loadCurrentProgress() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final progress = await ProgressRepository().loadProgress(user.uid);
+        setState(() {
+          _currentMoney = progress.money;
+          _loading = false;
+        });
+      } else {
+        setState(() => _loading = false);
+      }
+    } catch (e) {
+      debugPrint('Error loading progress: $e');
+      setState(() => _loading = false);
+    }
   }
 
   Future<void> _playMusic() async {
     await _audioManager.playMusic('ending_page.mp3');
   }
 
+  Player _createPlayer() {
+    return Player.fromGameState(
+      day: widget.dayNumber + 1,
+      money: _currentMoney,
+      userId: FirebaseAuth.instance.currentUser?.uid,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: Colors.pinkAccent),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Stack(
         children: [
@@ -44,106 +85,138 @@ class _EndingScreenState extends State<EndingScreen> {
           ),
 
           Center(
-            child: Container(
-              width: 500,
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(30),
-              decoration: BoxDecoration(
-                color: Color(0xFFFFE3DC).withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Day ${widget.dayNumber} is over!',
-                    style: const TextStyle(
-                      fontSize: 44,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Caveat',
-                      color: Color(0xFFFF69B4),
-                      letterSpacing: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 25),
-
-                  RichText(
-                    text: TextSpan(
+            child: SingleChildScrollView(
+              child: Container(
+                width: 450,
+                margin: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(25),
+                decoration: BoxDecoration(
+                  color: Color(0xFFFFE3DC).withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Day ${widget.dayNumber} is over!',
                       style: const TextStyle(
-                        fontSize: 26,
-                        color: Color(0xFF8B6F8F),
-                        fontFamily: 'Caveat',
+                        fontSize: 38,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'Caveat',
+                        color: Color(0xFFFF69B4),
+                        letterSpacing: 1.2,
                       ),
-                      children: [
-                        const TextSpan(
-                          text: 'Money Earned: ',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 18),
+
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: Color(0xFF8B6F8F),
+                          fontFamily: 'Caveat',
+                          fontWeight: FontWeight.bold,
                         ),
-                        TextSpan(
-                          text: '\$${widget.moneyEarned.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: Color(0xFF87D68D),
-                            fontSize: 28,
+                        children: [
+                          const TextSpan(
+                            text: 'Money Earned: ',
                           ),
+                          TextSpan(
+                            text: '\$${widget.moneyEarned.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: Color(0xFF87D68D),
+                              fontSize: 26,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: Color(0xFF8B6F8F),
+                          fontFamily: 'Caveat',
+                          fontWeight: FontWeight.bold,
+                        ),
+                        children: [
+                          const TextSpan(
+                            text: 'Total Money: ',
+                          ),
+                          TextSpan(
+                            text: '\$$_currentMoney',
+                            style: const TextStyle(
+                              color: Color(0xFF87D68D),
+                              fontSize: 26,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: Color(0xFF8B6F8F),
+                          fontFamily: 'Caveat',
+                          fontWeight: FontWeight.bold,
+                        ),
+                        children: [
+                          const TextSpan(
+                            text: 'Customers Served: ',
+                          ),
+                          TextSpan(
+                            text: '${widget.customersServed}',
+                            style: const TextStyle(
+                              fontSize: 26,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        _buildButton(
+                          context,
+                          label: 'Home',
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, '/starting');
+                          },
+                        ),
+
+                        _buildButton(
+                          context,
+                          label: 'Profile',
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/profile',
+                              arguments: _createPlayer(),
+                            );
+                          },
+                        ),
+
+                        _buildButton(
+                          context,
+                          label: 'New Day',
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, '/starting');
+                          },
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 26,
-                        color: Color(0xFF8B6F8F),
-                        fontFamily: 'Caveat',
-                        fontWeight: FontWeight.bold,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: 'Customers Served: ',
-                        ),
-                        TextSpan(
-                          text: '${widget.customersServed}',
-                          style: const TextStyle(
-                            fontSize: 28,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 35),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildButton(
-                        context,
-                        label: 'Home',
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/starting');
-                        },
-                      ),
-
-                      _buildButton(
-                        context,
-                        label: 'Profile',
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/profile');
-                        },
-                      ),
-
-                      _buildButton(
-                        context,
-                        label: 'New Day',
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/starting');
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -159,8 +232,8 @@ class _EndingScreenState extends State<EndingScreen> {
         backgroundColor: Color(0xFFFFB6C1),
         foregroundColor: Color(0xFFFFFFFF),
         padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 12,
+          horizontal: 18,
+          vertical: 10,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../models/game_character.dart';
 import '../../models/recipe.dart';
 import '../../services/audio_manager.dart';
-import '../kitchen_screen.dart';
 
+// ============================================================================
+// CAKE MINI-GAME RESULT
+// ============================================================================
 class CakeMiniGameResult {
   final String creamColor;
   final String topping;
@@ -16,6 +18,9 @@ class CakeMiniGameResult {
   });
 }
 
+// ============================================================================
+// CAKE GAME SCREEN
+// ============================================================================
 class CakeGameScreen extends StatefulWidget {
   final CakeRecipe targetRecipe;
   final int day;
@@ -41,7 +46,7 @@ class CakeGameScreen extends StatefulWidget {
     this.cakeFrosting,
     this.cakeTopping,
     this.teaBase,
-    this.teaTopping
+    this.teaTopping,
   });
 
   @override
@@ -65,7 +70,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
   late AnimationController creamController;
   late AnimationController toppingController;
 
-  final Color _baseCakeColor = Color(0xFFFFE4B5);
+  final Color _baseCakeColor = const Color(0xFFFFE4B5);
 
   @override
   void initState() {
@@ -74,12 +79,12 @@ class _CakeGameScreenState extends State<CakeGameScreen>
 
     creamController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 500),
     );
 
     toppingController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 600),
     );
   }
 
@@ -99,12 +104,6 @@ class _CakeGameScreenState extends State<CakeGameScreen>
   void _submitCake() {
     if (!isComplete) return;
 
-    final playerRecipe = CakeRecipe(
-      creamColor: selectedCream!,
-      topping: selectedTopping!,
-    );
-    final isCorrect = widget.targetRecipe.matches(playerRecipe);
-
     final result = CakeMiniGameResult(
       creamColor: selectedCream!,
       topping: selectedTopping!,
@@ -121,15 +120,15 @@ class _CakeGameScreenState extends State<CakeGameScreen>
   Color _creamToColor(String? cream) {
     switch (cream) {
       case "pink":
-        return Color(0xFFFFB6C1);
+        return const Color(0xFFFFB6C1);
       case "white":
         return Colors.white;
       case "brown":
-        return Color(0xFF8B4513);
+        return const Color(0xFF8B4513);
       case "blue":
-        return Color(0xFFADD8E6);
+        return const Color(0xFFADD8E6);
       default:
-        return Color(0xFFFFE4B5);
+        return const Color(0xFFFFE4B5);
     }
   }
 
@@ -140,10 +139,10 @@ class _CakeGameScreenState extends State<CakeGameScreen>
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Color(0xFFFACAE7), width: 3),
+            side: const BorderSide(color: Color(0xFFFACAE7), width: 3),
           ),
-          backgroundColor: Color(0xFFFFE5EC),
-          title: Text(
+          backgroundColor: const Color(0xFFFFE5EC),
+          title: const Text(
             'Current Order',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -157,16 +156,16 @@ class _CakeGameScreenState extends State<CakeGameScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: EdgeInsets.all(15),
+                padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  color: Color(0xFFFFE3DC),
+                  color: const Color(0xFFFFE3DC),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Color(0xFFFFB6C1), width: 2),
+                  border: Border.all(color: const Color(0xFFFFB6C1), width: 2),
                 ),
                 child: Text(
-                  '${_formatName(widget.targetRecipe.creamColor)} Cream Cake + ${_formatName(widget.targetRecipe.topping)} Topping',
+                  '${_formatName(widget.targetRecipe.creamColor)} Cream Cake\n+ ${_formatName(widget.targetRecipe.topping)} Topping',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Caveat',
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
@@ -174,10 +173,10 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                   ),
                 ),
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(
+                child: const Text(
                   'Got it!',
                   style: TextStyle(
                     fontFamily: 'Caveat',
@@ -193,7 +192,10 @@ class _CakeGameScreenState extends State<CakeGameScreen>
     );
   }
 
-  Widget _buildAppBarIconButton({required IconData icon, required VoidCallback onPressed}) {
+  Widget _buildAppBarIconButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(right: 15.0),
       child: GestureDetector(
@@ -216,10 +218,13 @@ class _CakeGameScreenState extends State<CakeGameScreen>
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Make Cake', style: TextStyle(fontFamily: 'Caveat', fontSize: 28)),
-          backgroundColor: Color(0xFFFFB6C1),
+          title: const Text(
+            'Make Cake',
+            style: TextStyle(fontFamily: 'Caveat', fontSize: 28),
+          ),
+          backgroundColor: const Color(0xFFFFB6C1),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: _handleBackToKitchen,
           ),
           actions: [
@@ -230,7 +235,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
           ],
         ),
         body: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -252,16 +257,16 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildSectionTitle('Cream'),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Wrap(
                           alignment: WrapAlignment.center,
                           spacing: 8.0,
                           runSpacing: 8.0,
                           children: [
                             _creamOption('white', 'White', Colors.white),
-                            _creamOption('pink', 'Pink', Color(0xFFFFB6C1)),
-                            _creamOption('brown', 'Brown', Color(0xFF8B4513)),
-                            _creamOption('blue', 'Blue', Color(0xFFADD8E6)),
+                            _creamOption('pink', 'Pink', const Color(0xFFFFB6C1)),
+                            _creamOption('brown', 'Brown', const Color(0xFF8B4513)),
+                            _creamOption('blue', 'Blue', const Color(0xFFADD8E6)),
                           ],
                         ),
                       ],
@@ -270,7 +275,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                 ),
               ),
 
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
 
               // CENTER: CAKE PREVIEW
               Container(
@@ -283,6 +288,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                       alignment: Alignment.center,
                       clipBehavior: Clip.none,
                       children: [
+                        // Plate shadow
                         Transform.translate(
                           offset: const Offset(0, 70),
                           child: Container(
@@ -295,17 +301,19 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.2),
                                   blurRadius: 8,
-                                  offset: Offset(0, 4),
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
                           ),
                         ),
+                        // Cake layers
                         Transform.translate(
                           offset: const Offset(0, -30),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // Topping area
                               SizedBox(
                                 height: 100,
                                 child: selectedTopping != null
@@ -316,7 +324,9 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                                     return Transform.translate(
                                       offset: Offset(
                                         0,
-                                        -dropHeight + dropHeight * toppingController.value,
+                                        -dropHeight +
+                                            dropHeight *
+                                                toppingController.value,
                                       ),
                                       child: child,
                                     );
@@ -325,8 +335,9 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                                 )
                                     : const SizedBox.shrink(),
                               ),
+                              // Cream layer
                               AnimatedContainer(
-                                duration: Duration(milliseconds: 400),
+                                duration: const Duration(milliseconds: 400),
                                 curve: Curves.easeOut,
                                 width: 160,
                                 height: 40,
@@ -335,9 +346,18 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                                   color: selectedCream != null
                                       ? _creamToColor(selectedCream)
                                       : _baseCakeColor.withOpacity(0.8),
-                                  boxShadow: selectedCream != null ? [BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))] : null,
+                                  boxShadow: selectedCream != null
+                                      ? [
+                                    const BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 2,
+                                      offset: Offset(0, 1),
+                                    )
+                                  ]
+                                      : null,
                                 ),
                               ),
+                              // Base cake layer
                               Container(
                                 width: 170,
                                 height: 60,
@@ -345,14 +365,14 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                                   borderRadius: BorderRadius.circular(15.0),
                                   color: _baseCakeColor,
                                   border: Border.all(
-                                      color: Color(0xFFF8A66F),
-                                      width: 3
+                                    color: const Color(0xFFF8A66F),
+                                    width: 3,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Color(0xFFFFB6C1).withOpacity(0.3),
+                                      color: const Color(0xFFFFB6C1).withOpacity(0.3),
                                       blurRadius: 10,
-                                      offset: Offset(0, 5),
+                                      offset: const Offset(0, 5),
                                     ),
                                   ],
                                 ),
@@ -360,10 +380,13 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                             ],
                           ),
                         ),
+                        // Instruction text
                         Transform.translate(
                           offset: const Offset(0, -100),
                           child: Opacity(
-                            opacity: (selectedCream == null && selectedTopping == null) ? 1.0 : 0.0,
+                            opacity: (selectedCream == null && selectedTopping == null)
+                                ? 1.0
+                                : 0.0,
                             child: IgnorePointer(
                               ignoring: selectedCream != null || selectedTopping != null,
                               child: Text(
@@ -384,13 +407,14 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                     ElevatedButton(
                       onPressed: isComplete ? _submitCake : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isComplete ? Color(0xFF87D68D) : Colors.grey,
-                        padding: EdgeInsets.symmetric(horizontal: 30),
+                        backgroundColor:
+                        isComplete ? const Color(0xFF87D68D) : Colors.grey,
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Serve Cake!',
                         style: TextStyle(
                           fontFamily: 'Caveat',
@@ -400,12 +424,12 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                         ),
                       ),
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
 
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
 
               // RIGHT: TOPPING OPTIONS
               Container(
@@ -415,7 +439,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     _buildSectionTitle('Topping'),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: 8.0,
@@ -442,7 +466,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
       padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'Caveat',
           fontSize: 26,
           fontWeight: FontWeight.bold,
@@ -462,12 +486,12 @@ class _CakeGameScreenState extends State<CakeGameScreen>
       },
       child: Container(
         width: 85,
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
+          color: isSelected ? const Color(0xFFFFB6C1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Color(0xFFFF69B4) : Color(0xFFFFB6C1),
+            color: isSelected ? const Color(0xFFFF69B4) : const Color(0xFFFFB6C1),
             width: isSelected ? 3 : 2,
           ),
         ),
@@ -482,7 +506,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
                 border: Border.all(color: Colors.grey.shade400, width: 2),
               ),
             ),
-            SizedBox(height: 5),
+            const SizedBox(height: 5),
             Text(
               label,
               style: TextStyle(
@@ -509,12 +533,12 @@ class _CakeGameScreenState extends State<CakeGameScreen>
       },
       child: Container(
         width: 85,
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Color(0xFFFFB6C1) : Colors.white,
+          color: isSelected ? const Color(0xFFFFB6C1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Color(0xFFFF69B4) : Color(0xFFFFB6C1),
+            color: isSelected ? const Color(0xFFFF69B4) : const Color(0xFFFFB6C1),
             width: isSelected ? 3 : 2,
           ),
         ),
@@ -526,7 +550,7 @@ class _CakeGameScreenState extends State<CakeGameScreen>
               alignment: Alignment.center,
               child: assetPath != null
                   ? Image.asset(assetPath, width: 30, height: 30)
-                  : Text('?'),
+                  : const Text('?'),
             ),
             Text(
               label,

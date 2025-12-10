@@ -41,7 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: EdgeInsets.only(left: 170),
                 child: InkWell(
                   onTap: () {
-                    Navigator.pushNamed(context, '/profile');
+                    // Go to starting page, not profile
+                    Navigator.pushNamed(context, '/starting');
                   },
                   child: Center(
                     child: Text(

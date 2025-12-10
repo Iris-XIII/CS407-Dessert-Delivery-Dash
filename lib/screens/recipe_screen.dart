@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
+import '../models/player.dart';
 
 class RecipeScreen extends StatefulWidget {
-  final int dayNumber;
-  final int level;
-  final double money;
+  final Player player;
 
   const RecipeScreen({
     Key? key,
-    this.dayNumber = 1,
-    this.level = 1,
-    this.money = 0.0,
+    required this.player,
   }) : super(key: key);
 
   @override
@@ -19,7 +16,6 @@ class RecipeScreen extends StatefulWidget {
 
 class _RecipeScreenState extends State<RecipeScreen> {
   final List<Map<String, dynamic>> _allRecipes = [
-    // Cake Recipes
     {
       'name': 'Strawberry Delight Cake',
       'object': CakeRecipe(
@@ -41,8 +37,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
         topping: 'sprinkles',
       )
     },
-
-    // Milk Tea Recipes
     {
       'name': 'Brown Sugar Milk Tea',
       'object': MilkTeaRecipe(
@@ -74,69 +68,51 @@ class _RecipeScreenState extends State<RecipeScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedRecipeMap = _allRecipes.first; // Default to the first recipe
+    _selectedRecipeMap = _allRecipes.first;
   }
 
-  // Helper method to format recipe details based on type
-  String _getRecipeIconPath(String recipeName) {
-    if (recipeName.toLowerCase().contains('cake')) {
-      return 'assets/recipe_icons/cake.png';
-    }
-    if (recipeName.toLowerCase().contains('tea')) {
-      return 'assets/recipe_icons/milk_tea.png';
-    }
-    // For simple recipes, use the name directly
-    return 'assets/recipe_icons/${recipeName.toLowerCase()}.png';
-  }
-
-  // NEW: Helper for getting actual Color object from MilkTeaRecipe tea base string
   Color _getTeaColorFromText(String teaBaseKey) {
     switch (teaBaseKey) {
       case 'black':
-        return const Color(0xFF4A2511); // Dark Brown/Black
+        return const Color(0xFF4A2511);
       case 'green':
-        return const Color(0xFF98D8AA); // Light Minty Green
+        return const Color(0xFF98D8AA);
       case 'oolong':
-        return const Color(0xFFC68B59); // Brownish Orange/Oolong
+        return const Color(0xFFC68B59);
       case 'taro':
-        return const Color(0xFFB19CD9); // Light Purple/Taro
+        return const Color(0xFFB19CD9);
       default:
         return Colors.grey;
     }
   }
 
-  // Helper for building consistent Milk Tea recipes
   Widget _buildMilkTeaDetailRow(String label, String value, String key, String type, TextStyle style) {
     Widget iconWidget;
 
-    // Logic to determine if an image or a swatch will be used for an ingredient
     if (type == 'teaBase') {
-      // Show a square swatch for the tea base
       iconWidget = Container(
         width: 30,
         height: 30,
         margin: const EdgeInsets.only(right: 10),
         decoration: BoxDecoration(
-          color: _getTeaColorFromText(key), // Use the color helper
+          color: _getTeaColorFromText(key),
           shape: BoxShape.rectangle,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(color: Colors.grey.shade400, width: 1),
         ),
       );
     } else if (type == 'sweetness') {
-      // Show nothing for sweetness
       iconWidget = const SizedBox(width: 40, height: 30);
     } else if (type == 'topping') {
       if (key == 'none') {
         iconWidget = const SizedBox(width: 40, height: 30);
       } else {
-        // Show topping image or fallback icon for toppings
         iconWidget = Container(
           width: 30,
           height: 30,
           margin: const EdgeInsets.only(right: 10),
           child: Image.asset(
-            'assets/images/${key}.png',
+            'assets/images/$key.png',
             errorBuilder: (context, error, stackTrace) =>
             const Icon(
                 Icons.fiber_manual_record, size: 20, color: Colors.brown),
@@ -151,7 +127,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
       padding: const EdgeInsets.only(bottom: 5.0),
       child: Row(
         children: [
-          iconWidget, // Insert the determined icon/swatch
+          iconWidget,
           Text(
             '$label ',
             style: style.copyWith(fontWeight: FontWeight.w500),
@@ -172,7 +148,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
       color: Color(0xFF4E4E4E),
     );
 
-    // Common style for headers in the details section
     const TextStyle headerStyle = TextStyle(
       fontSize: 22,
       fontFamily: 'Caveat',
@@ -180,9 +155,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
       color: Color(0xFF8B6F8F),
     );
 
-    // --- CAKE RECIPE ---
     if (recipeObject is CakeRecipe) {
-      // Logic for CakeRecipe (Uses colors and topping images if available)
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -197,7 +170,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
           ),
           const SizedBox(height: 5),
 
-          // Cream Color Display
           Row(
             children: [
               Container(
@@ -216,7 +188,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
           ),
           const SizedBox(height: 8),
 
-          // Topping Display (Use topping image)
           Row(
             children: [
               Container(
@@ -224,8 +195,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
                 height: 30,
                 margin: const EdgeInsets.only(right: 10),
                 child: Image.asset(
-                  'assets/images/${recipeObject.topping
-                      .toLowerCase()}.png',
+                  'assets/images/${recipeObject.topping.toLowerCase()}.png',
                   errorBuilder: (context, error, stackTrace) =>
                   const Icon(Icons.star, size: 30, color: Color(0xFFFFB6C1)),
                 ),
@@ -238,10 +208,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
           const SizedBox(height: 20),
         ],
       );
-
-      // --- MILK TEA RECIPE ---
     } else if (recipeObject is MilkTeaRecipe) {
-      // Logic for MilkTeaRecipe (Displays structured details)
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -278,12 +245,10 @@ class _RecipeScreenState extends State<RecipeScreen> {
       );
     }
 
-    // --- FALLBACK ---
     return const Text(
         'Recipe details unavailable for this type.', style: detailStyle);
   }
 
-// NEW: Helper for getting actual Color object from CakeRecipe string
   Color _getColorFromText(String colorText) {
     switch (colorText.toLowerCase()) {
       case 'white':
@@ -301,13 +266,11 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine the name for display. The 'name' key in the map holds the descriptive title.
     String recipeName = _selectedRecipeMap?['name'] ?? 'Select a recipe';
 
     return Scaffold(
       body: Stack(
         children: [
-          // Background
           Positioned.fill(
             child: Image.asset(
               'assets/images/StartPage.jpeg',
@@ -319,12 +282,12 @@ class _RecipeScreenState extends State<RecipeScreen> {
           SafeArea(
             child: Column(
               children: [
-                // Top Bar
+                // Top Bar with white background and styled text
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 20, vertical: 15),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withOpacity(0.9),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
@@ -336,55 +299,60 @@ class _RecipeScreenState extends State<RecipeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Left - Day and Level
+                      // Left - Day and Level with Caveat styling
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Day ${widget.dayNumber}',
+                            'Day ${widget.player.day}',
                             style: const TextStyle(
-                              fontSize: 26,
+                              fontSize: 32,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Caveat',
                               color: Color(0xFF8B6F8F),
                             ),
                           ),
                           Text(
-                            'Level: ${widget.level}',
+                            'Level: ${widget.player.level}',
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 24,
                               fontFamily: 'Caveat',
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF8B6F8F),
                             ),
                           ),
                         ],
                       ),
 
-                      // Middle - Money
+                      // Middle - Money with Caveat styling
                       Text(
-                        'Money: \$${widget.money.toStringAsFixed(2)}',
+                        'Money: \$${widget.player.money}',
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 28,
                           fontFamily: 'Caveat',
                           color: Color(0xFF87D68D),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
 
-                      // Right - Nav buttons (using the corrected _buildIconButton)
+                      // Right - Nav buttons
                       Row(
                         children: [
                           _buildIconButton(
-                            icon: Icons.person,
+                            icon: Icons.arrow_back,
                             onPressed: () {
-                              Navigator.pushNamed(context, '/profile');
+                              Navigator.pop(context);
                             },
                           ),
                           const SizedBox(width: 8),
                           _buildIconButton(
-                            icon: Icons.restaurant,
+                            icon: Icons.person,
                             onPressed: () {
-                              Navigator.pushNamed(context, '/kitchen');
+                              Navigator.pushNamed(
+                                context,
+                                '/profile',
+                                arguments: widget.player,
+                              );
                             },
                           ),
                           const SizedBox(width: 8),
@@ -392,14 +360,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
                             icon: Icons.home,
                             onPressed: () {
                               Navigator.pushNamed(context, '/starting');
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          _buildIconButton(
-                            icon: Icons.people,
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                  context, '/customer-reception');
                             },
                           ),
                         ],
@@ -502,7 +462,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Recipe Name (from the Map's 'name' key)
                                 Text(
                                   recipeName,
                                   style: const TextStyle(
@@ -513,7 +472,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 10),
-                                // Recipe Details (using the dynamic object from the Map)
                                 _formatRecipeDetails(_selectedRecipeMap!['object']),
                               ],
                             ),
@@ -531,7 +489,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
     );
   }
 
-  // Reuse same icon button style (using .withOpacity for correctness)
   Widget _buildIconButton({required IconData icon, required VoidCallback onPressed}) {
     return Container(
       decoration: BoxDecoration(
