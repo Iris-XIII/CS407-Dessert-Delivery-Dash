@@ -116,7 +116,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: <Widget>[
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text('Import from Gallery'),
+                title: const Text(
+                  'Import from Gallery',
+                  style: TextStyle(fontFamily: 'Caveat', fontSize: 20),
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   _pickImage();
@@ -125,7 +128,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Divider(),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Text('Choose a Game Avatar:', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(
+                  'Choose a Game Avatar:',
+                  style: TextStyle(
+                    fontFamily: 'Caveat',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
               ),
               SizedBox(
                 height: 100,
@@ -271,7 +281,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text(
               isLogin ? 'Log In' : 'Sign Up',
               style: const TextStyle(
-                fontSize: 28,
+                fontFamily: 'Caveat',
+                fontSize: 32,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -283,8 +294,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 controller: _emailController,
                 focusNode: _emailFocusNode,
                 autofocus: true,
+                style: const TextStyle(fontFamily: 'Caveat', fontSize: 18),
                 decoration: const InputDecoration(
                   labelText: 'Email',
+                  labelStyle: TextStyle(fontFamily: 'Caveat', fontSize: 18),
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.emailAddress,
@@ -296,8 +309,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: TextField(
                 controller: _passwordController,
                 obscureText: true,
+                style: const TextStyle(fontFamily: 'Caveat', fontSize: 18),
                 decoration: const InputDecoration(
                   labelText: 'Password',
+                  labelStyle: TextStyle(fontFamily: 'Caveat', fontSize: 18),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -314,7 +329,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: Text(
                 isLogin ? 'Log In' : 'Sign Up',
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(
+                  fontFamily: 'Caveat',
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
               ),
             ),
             TextButton(
@@ -323,6 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 isLogin
                     ? "Don't have an account? Sign up"
                     : "Already have an account? Log in",
+                style: const TextStyle(fontFamily: 'Caveat', fontSize: 18),
               ),
             ),
           ],
@@ -386,8 +406,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileInfo(User user) {
-    const TextStyle labelStyle = TextStyle(fontSize: 18, color: Color(0xFF8B6F8F));
-    const TextStyle valueStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
+    const TextStyle labelStyle = TextStyle(
+      fontFamily: 'Caveat',
+      fontSize: 20,
+      color: Color(0xFF8B6F8F),
+    );
+    const TextStyle valueStyle = TextStyle(
+      fontFamily: 'Caveat',
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+    );
 
     return Center(
         child: Padding(
@@ -428,19 +456,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 35,
                             child: TextField(
                               controller: _usernameController,
-                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                              decoration: InputDecoration(
+                              style: const TextStyle(
+                                fontFamily: 'Caveat',
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              decoration: const InputDecoration(
                                 hintText: 'Enter Username',
-                                border: const UnderlineInputBorder(),
+                                hintStyle: TextStyle(
+                                  fontFamily: 'Caveat',
+                                  fontSize: 28,
+                                ),
+                                border: UnderlineInputBorder(),
                                 isDense: true,
                                 contentPadding: EdgeInsets.zero,
-                                errorStyle: const TextStyle(height: 0),
+                                errorStyle: TextStyle(height: 0),
                               ),
                             ),
                           )
                               : Text(
                             user.displayName ?? 'New User',
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontFamily: 'Caveat',
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
 
                           const SizedBox(height: 4),
@@ -472,7 +512,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   backgroundColor: const Color(0xFF87D68D),
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                 ),
-                child: const Text("Save Changes", style: TextStyle(color: Colors.white, fontSize: 16)),
+                child: const Text(
+                  "Save Changes",
+                  style: TextStyle(
+                    fontFamily: 'Caveat',
+                    color: Colors.white,
+                    fontSize: 20,
+                  ),
+                ),
               )
                   : ElevatedButton(
                 onPressed: () async {
@@ -492,7 +539,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text("Log Out", style: TextStyle(color: Colors.white)),
+                child: const Text(
+                  "Log Out",
+                  style: TextStyle(
+                    fontFamily: 'Caveat',
+                    color: Colors.white,
+                    fontSize: 20,
+                  ),
+                ),
               ),
 
               ElevatedButton(
@@ -502,7 +556,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFB6C1),
                   ),
-                  child: const Text("Back to Home")
+                  child: const Text(
+                    "Back to Home",
+                    style: TextStyle(
+                      fontFamily: 'Caveat',
+                      fontSize: 20,
+                    ),
+                  )
               )
             ],
           ),
@@ -516,7 +576,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            fontFamily: 'Caveat',
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: const Color(0xFFFFB6C1),
         actions: user != null
             ? [
@@ -536,7 +603,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ]
             : null,
       ),
-      body: user == null ? _buildAuthForm() : _buildProfileInfo(user),
-    );
+      body: SafeArea(  // Add SafeArea here
+        child: user == null ? _buildAuthForm() : _buildProfileInfo(user),
+      ),
+        );
   }
 }
