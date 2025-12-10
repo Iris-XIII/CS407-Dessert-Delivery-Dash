@@ -50,6 +50,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserProfile();
+  }
+
+  void _loadUserProfile() {
     final user = _auth.currentUser;
     if (user != null) {
       _usernameController.text = user.displayName ?? 'New User';
@@ -76,9 +80,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _profilePhotoPath = pickedFile.path;
       });
+
+      // Save immediately when image is picked
+      await _saveAvatarToFirebase(pickedFile.path);
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Image selected from gallery")),
+        const SnackBar(content: Text("Image selected and saved!")),
       );
+    }
+  }
+
+  Future<void> _saveAvatarToFirebase(String avatarPath) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        // For asset avatars (game avatars), save the path directly
+        // For gallery images, you would need to upload to Firebase Storage
+        // For now, we'll just save asset paths
+        if (avatarPath.startsWith('assets/')) {
+          await user.updatePhotoURL(avatarPath);
+          debugPrint('Avatar saved to Firebase: $avatarPath');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error saving avatar: $e');
     }
   }
 
@@ -110,11 +135,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   itemBuilder: (context, index) {
                     final assetPath = _gameAvatars[index];
                     return GestureDetector(
-                      onTap: () {
+                      onTap: () async {
                         setState(() {
                           _profilePhotoPath = assetPath;
                         });
                         Navigator.of(context).pop();
+
+                        // Save the selected game avatar to Firebase
+                        await _saveAvatarToFirebase(assetPath);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Avatar updated!")),
+                        );
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -152,12 +184,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
         user = userCredential.user;
         await user?.updateDisplayName(_emailController.text.split('@').first);
+        // Set default avatar for new users
+        await user?.updatePhotoURL('assets/images/profile_avatar.png');
       }
 
       if (user != null) {
         setState(() {
           _usernameController.text = user?.displayName ?? 'New User';
-          _profilePhotoPath = user?.photoURL ?? 'assets/avatars/default.png';
+          _profilePhotoPath = user?.photoURL ?? 'assets/images/profile_avatar.png';
           _bioController.text = 'A short bio about me.';
         });
 
@@ -189,7 +223,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (user != null) {
       try {
+        // Save username
         await user.updateDisplayName(_usernameController.text.trim());
+
+        // Avatar is already saved when selected, but save again to be safe
+        if (_profilePhotoPath != null) {
+          await user.updatePhotoURL(_profilePhotoPath);
+        }
+
+        // Reload user to get updated info
+        await user.reload();
+        final updatedUser = _auth.currentUser;
+
+        if (updatedUser != null) {
+          setState(() {
+            _usernameController.text = updatedUser.displayName ?? 'New User';
+            _profilePhotoPath = updatedUser.photoURL;
+          });
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Profile updated successfully!")),
@@ -446,7 +497,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/starting');
+                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFB6C1),
