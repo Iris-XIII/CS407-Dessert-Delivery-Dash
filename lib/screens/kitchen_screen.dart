@@ -502,20 +502,12 @@ class _KitchenScreenState extends State<KitchenScreen> {
 
           const SizedBox(width: 20),
 
-          // Navigation buttons
           Row(
             children: [
               _buildIconButton(
-                icon: Icons.person,
+                icon: Icons.arrow_back,
                 onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/profile',
-                    arguments: Player.fromGameState(
-                      day: widget.day,
-                      money: widget.money,
-                    ),
-                  );
+                  Navigator.pop(context);
                 },
               ),
               const SizedBox(width: 8),

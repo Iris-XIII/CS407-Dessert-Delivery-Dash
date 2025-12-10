@@ -375,8 +375,7 @@ class _CustomerReceptionScreenState extends State<CustomerReceptionScreen> {
                             Row(
                               children: [
                                 Text(
-                                  'Customers: $customersServed',
-                                  // made customer count consistent
+                                  'Customers waiting: ${totalCustomers-customersServed}',
                                   style: const TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
