@@ -7,6 +7,8 @@ import 'screens/kitchen_screen.dart';
 import 'screens/customer_reception_screen.dart';
 import 'screens/recipe_screen.dart';
 import 'screens/settings_screen.dart';
+import 'package:provider/provider.dart';
+import 'services/profile_manager.dart';
 // Firebase imports
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -16,7 +18,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(DessertDeliveryDash());
+  final profileManager = ProfileManager();
+  profileManager.initialize();
+
+  runApp(
+      ChangeNotifierProvider.value(
+        value: profileManager,
+        child: DessertDeliveryDash(),
+      ),
+  );
 }
 
 class DessertDeliveryDash extends StatelessWidget {

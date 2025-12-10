@@ -1,8 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../services/profile_manager.dart';
+import '../services/storage_service.dart';
 
 // Default profile image options
 const List<String> _gameAvatars = [
@@ -21,14 +23,8 @@ const List<String> _gameAvatars = [
 ];
 
 class ProfileScreen extends StatefulWidget {
-  // GAME STATE PROPERTIES
-  final double money;
-  final int dayNumber;
-
   const ProfileScreen({
     Key? key,
-    this.money = 0.0, // Default for testing; should be passed by caller
-    this.dayNumber = 1, // Default for testing; should be passed by caller
   }) : super(key: key);
 
   @override
@@ -197,14 +193,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _saveProfileEdits() async {
     setState(() => isLoading = true);
     final user = _auth.currentUser;
+    String? newPhotoUrl;
 
     if (user != null) {
       try {
+        // check if the current path is a local file path
+        bool isLocalFile = _profilePhotoPath != null &&
+            (_profilePhotoPath!.startsWith('/data') || _profilePhotoPath!.startsWith('file://'));
+
+        if (isLocalFile) {
+          newPhotoUrl = await StorageService.instance.uploadProfilePhoto(
+            userId: user.uid,
+            localFilePath: _profilePhotoPath!,
+          );
+          _profilePhotoPath = newPhotoUrl;
+        } else if (_profilePhotoPath != null) {
+          newPhotoUrl = _profilePhotoPath;
+        }
+        // Update Firebase Auth profile
         await user.updateDisplayName(_usernameController.text.trim());
+        await user.updatePhotoURL(newPhotoUrl);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Profile updated successfully!")),
         );
+
+        await user.reload();
 
         setState(() {
           _isEditing = false;
@@ -214,9 +228,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to update profile: $e")),
         );
+      } finally {
+        setState(() => isLoading = false);
       }
     }
-    setState(() => isLoading = false);
   }
 
   Widget _buildAuthForm() {
@@ -383,6 +398,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileInfo(User user) {
+    final profileManager = Provider.of<ProfileManager>(context);
     const TextStyle labelStyle = TextStyle(fontSize: 18, color: Color(0xFF8B6F8F));
     const TextStyle valueStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
 
@@ -423,7 +439,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Name Display (Toggles between Text and TextField)
+                          // Name Display
                           _isEditing
                               ? SizedBox( // Wrap TextField in SizedBox to control height
                             height: 35,
@@ -448,13 +464,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           // Money (Read-only)
                           Text(
-                            'Money: \$${widget.money.toStringAsFixed(2)}',
+                            'Money: \$${profileManager.money.toStringAsFixed(2)}',
                             style: valueStyle.copyWith(color: const Color(0xFF87D68D)),
                           ),
 
                           // Day (Read-only)
                           Text(
-                            'Day: ${widget.dayNumber}',
+                            'Day: ${profileManager.dayNumber}',
                             style: labelStyle,
                           ),
                         ],
