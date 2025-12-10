@@ -6,7 +6,7 @@ import '../models/day_plan.dart';
 const List<day_plan> kDays = [
   // Days 1–5: very easy, 2–3 customers
   day_plan(dayNumber: 1, characterIds: ["Owl", "bear"]),
-  day_plan(dayNumber: 2, characterIds: ["Fox", "hedgehog", "bear"]),
+  day_plan(dayNumber: 2, characterIds: ["Fox", "Owl", "Frog"]),
   day_plan(dayNumber: 3, characterIds: ["Frog", "cat", "squirrel"]),
   day_plan(dayNumber: 4, characterIds: ["frog", "mouse", "owl"]),
   day_plan(dayNumber: 5, characterIds: ["rabbit", "hedgehog", "deer"]),
