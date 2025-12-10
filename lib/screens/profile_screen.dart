@@ -6,17 +6,17 @@ import 'package:image_picker/image_picker.dart';
 
 // Default profile image options
 const List<String> _gameAvatars = [
-  'assets/images/bear.png',
-  'assets/images/deer.png',
+  'assets/images/Bear.png',
+  'assets/images/Deer.png',
   'assets/images/Fairy.png',
   'assets/images/Female Elf.png',
   'assets/images/Fox.png',
-  'assets/images/frog.png',
+  'assets/images/Frog.png',
   'assets/images/Gnome.png',
   'assets/images/Owl.png',
-  'assets/images/panda.png',
-  'assets/images/raccoon.png',
-  'assets/images/squirel.png',
+  'assets/images/Panda.png',
+  'assets/images/Raccoon.png',
+  'assets/images/Squirel.png',
   'assets/images/Wizard.png'
 ];
 

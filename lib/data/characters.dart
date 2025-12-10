@@ -1,79 +1,162 @@
 import '../models/game_character.dart';
 
 /// A dictionary of all characters by ID.
+///
+/// MilkTeaOrder fields:
+///   sweetness: 'none' | 'light' | 'regular' | 'extra'
+///   base:      'black' | 'green' | 'oolong' | 'taro'
+///   topping:   'boba' | 'jelly' | 'pudding' | 'none'
+///
+/// CakeOrder fields:
+///   cake:    'pink' | 'white' | 'brown' | 'blue'   // frosting / cream color
+///   topping: 'strawberry' | 'sprinkles' | 'chocolate' | 'cherry'
 const Map<String, GameCharacter> kCharacters = {
-  // Milk tea–only characters
+  // ────────────── Milk-tea-only characters ──────────────
+
   "Owl": GameCharacter(
     id: "Owl",
     sprite: "Owl.png",
-    milkTeaOrder: "Black tea, 50% sweet, classic boba",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "regular", // 50%
+      base: "black",
+      topping: "boba",
+    ),
   ),
+
   "Fox": GameCharacter(
     id: "Fox",
     sprite: "Fox.png",
-    milkTeaOrder: "Earl Grey milk tea, 30% sweet, no toppings",
-    cakeOrder: "Chocolate cake, 2 layers, chocolate frosting, sprinkles",
-  ),
-  "squirrel": GameCharacter(
-    id: "squirrel",
-    sprite: "squirrel.png",
-    milkTeaOrder: "Oolong tea, 70% sweet, tapioca pearls",
-  ),
-  "deer": GameCharacter(
-    id: "deer",
-    sprite: "deer.png",
-    milkTeaOrder: "Jasmine green tea, 25% sweet, aloe vera",
-  ),
-  "raccoon": GameCharacter(
-    id: "raccoon",
-    sprite: "raccoon.png",
-    milkTeaOrder: "Brown sugar milk, 100% sweet, boba + pudding",
-  ),
-  "frog": GameCharacter(
-    id: "frog",
-    sprite: "frog.png",
-    milkTeaOrder: "Matcha latte, 50% sweet, red bean",
-  ),
-  "rabbit": GameCharacter(
-    id: "rabbit",
-    sprite: "rabbit.png",
-    milkTeaOrder: "Taro milk tea, 75% sweet, grass jelly",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "light", // 25%
+      base: "green",
+      topping: "none",
+    ),
   ),
 
-  // Cake-only characters
-  "bear": GameCharacter(
-    id: "bear",
-    sprite: "bear.png",
-    cakeOrder: "Chocolate cake, 2 layers, chocolate frosting, sprinkles",
+  "Frog": GameCharacter(
+    id: "Frog",
+    sprite: "Frog.png",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "extra", // 100%
+      base: "taro",
+      topping: "jelly",
+    ),
   ),
-  "hedgehog": GameCharacter(
-    id: "hedgehog",
-    sprite: "hedgehog.png",
-    cakeOrder: "Vanilla cake, 1 layer, pink frosting, strawberry slices",
+
+  "Panda": GameCharacter(
+    id: "Panda",
+    sprite: "Panda.png",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "light",
+      base: "oolong",
+      topping: "pudding",
+    ),
   ),
-  "cat": GameCharacter(
-    id: "cat",
-    sprite: "cat.png",
-    cakeOrder: "Lemon sponge, 2 layers, white frosting, blueberry topping",
+
+  "Raccoon": GameCharacter(
+    id: "Raccoon",
+    sprite: "Raccoon.png",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "extra",
+      base: "black",
+      topping: "pudding",
+    ),
   ),
-  "dog": GameCharacter(
-    id: "dog",
-    sprite: "dog.png",
-    cakeOrder: "Red velvet, 3 layers, cream cheese frosting, no toppings",
+
+  "Squirel": GameCharacter(
+    id: "Squirel",
+    sprite: "Squirel.png",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "regular",
+      base: "green",
+      topping: "jelly",
+    ),
   ),
-  "mouse": GameCharacter(
-    id: "mouse",
-    sprite: "mouse.png",
-    cakeOrder: "Cheesecake, 1 layer, plain, raspberry drizzle",
+
+  // ────────────── Cake-only characters ──────────────
+
+  "Bear": GameCharacter(
+    id: "Bear",
+    sprite: "Bear.png",
+    cakeOrder: CakeOrder(
+      cake: "brown",          // chocolate-colored cream
+      topping: "chocolate",
+    ),
   ),
-  "panda": GameCharacter(
-    id: "panda",
-    sprite: "panda.png",
-    cakeOrder: "Matcha roll cake, 1 layer, whipped cream, azuki beans",
+
+  "Deer": GameCharacter(
+    id: "Deer",
+    sprite: "Deer.png",
+    cakeOrder: CakeOrder(
+      cake: "white",          // vanilla / whipped cream look
+      topping: "strawberry",
+    ),
   ),
-  "koala": GameCharacter(
-    id: "koala",
-    sprite: "koala.png",
-    cakeOrder: "Coconut cake, 2 layers, coconut frosting, toasted flakes",
+
+  "Hedgehog": GameCharacter(
+    id: "Hedgehog",
+    sprite: "Hedgehog.png",
+    cakeOrder: CakeOrder(
+      cake: "brown",
+      topping: "sprinkles",
+    ),
+  ),
+
+  // ────────────── Magic / hybrid characters ──────────────
+
+  "Fairy": GameCharacter(
+    id: "Fairy",
+    sprite: "Fairy.png",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "light",
+      base: "oolong",
+      topping: "boba",
+    ),
+    cakeOrder: CakeOrder(
+      cake: "pink",
+      topping: "strawberry",
+    ),
+  ),
+
+  "Female Elf": GameCharacter(
+    id: "Female Elf",
+    sprite: "Female Elf.png",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "regular",
+      base: "taro",
+      topping: "jelly",
+    ),
+    cakeOrder: CakeOrder(
+      cake: "white",
+      topping: "cherry",
+    ),
+  ),
+
+  "Gnome": GameCharacter(
+    id: "Gnome",
+    sprite: "Gnome.png",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "regular",
+      base: "green",
+      topping: "pudding",
+    ),
+    cakeOrder: CakeOrder(
+      cake: "blue",
+      topping: "sprinkles",
+    ),
+  ),
+
+  "Wizard": GameCharacter(
+    id: "Wizard",
+    sprite: "Wizard.png",
+    milkTeaOrder: MilkTeaOrder(
+      sweetness: "none",
+      base: "black",
+      topping: "none",
+    ),
+    cakeOrder: CakeOrder(
+      cake: "blue",
+      topping: "chocolate",
+    ),
   ),
 };
