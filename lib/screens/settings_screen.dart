@@ -108,7 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Color(0xFFFFB6C1)),
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
           const Expanded(
@@ -118,7 +118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFFFB6C1),
+                color: Colors.black,
                 fontFamily: 'Caveat',
               ),
             ),
